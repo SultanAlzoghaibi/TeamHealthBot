@@ -1,0 +1,1 @@
+[Figma System Architecture v1](<https://www.figma.com/board/OBpqjJ9DRBn3OYBe9oYGIR/Slack-gRPC?node-id=0-1&t=JnSokWwMous4RVx2-1>)
