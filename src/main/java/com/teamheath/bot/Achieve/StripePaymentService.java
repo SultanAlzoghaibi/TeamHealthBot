@@ -1,4 +1,4 @@
-package com.teamheath.bot;
+package com.teamheath.bot.Achieve;
 
 public class StripePaymentService implements PaymentService {
     @Override
