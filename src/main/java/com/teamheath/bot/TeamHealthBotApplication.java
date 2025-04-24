@@ -7,9 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class TeamHealthBotApplication {
 
     public static void main(String[] args) {
-        //SpringApplication.run(TeamHealthBotApplication.class, args);
-        var orderService = new OrderService(new StripePaymentService());
-        orderService.placeOrder();
+        SpringApplication.run(TeamHealthBotApplication.class, args);
+
 
     }
 
