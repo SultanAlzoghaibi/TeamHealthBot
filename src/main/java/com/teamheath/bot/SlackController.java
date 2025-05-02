@@ -1,5 +1,7 @@
 package com.teamheath.bot;
 
+import com.teamheath.bot.Commands.Users.CommandCheckin;
+import com.teamheath.bot.Commands.Users.CommandMyscores;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,19 +19,20 @@ public class SlackController {
 
     @FunctionalInterface
     public interface CommandFactory {
-        Runnable create(String userId, String channelId, String scoreText);
+        Runnable create(String userId, String channelId, String scoreText, String responseURL);
+
+
     }
 
     public SlackController() {
-        commandMap.put("/checkin", (u, c, s) ->
-                () -> new CommandCheckin(u, c, s).run()
+        commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandCheckin(userId, channelId, scoreText, responseURL ).run()
         );
-        commandMap.put("/t2", (u, c, s) ->
-                () -> System.out.println("T2 running"));
-        commandMap.put("/t3", (u, c, s) -> ()
-                -> System.out.println("T3 running"));
-        commandMap.put("/t4", (u, c, s) ->
-                () -> System.out.println("T4 running"));
+        commandMap.put("/myScores", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandMyscores(userId, channelId, scoreText, responseURL ).run()
+        );
+
+
     }
 
 
@@ -39,11 +42,17 @@ public class SlackController {
         String userId = payload.get("user_id");
         String channelId = payload.get("channel_id");
         String scoreText = payload.get("text");
+        String response_url = payload.get("response_url");
+
+    // Slack has a 3 sec timout rule
 
         CommandFactory task = commandMap.get(command);
-        if (task != null) {
-            executor.submit(task.create(userId, channelId, scoreText));
 
+
+        if (task != null) {
+            executor.submit(task.create(userId, channelId, scoreText, response_url));
+
+            System.out.println("RESPONSE SEND BACK");
             return ResponseEntity.ok("✅ Running `" + command + "`");
         } else {
             return ResponseEntity.badRequest().body("❌ Unknown command: `" + command + "`");
