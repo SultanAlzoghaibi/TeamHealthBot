@@ -1,5 +1,7 @@
-package com.teamheath.bot.Commands.Users;
+package com.teamheath.bot.Commands.Users.UserScore;
 
+import com.teamheath.bot.Commands.Users.Team.TeamDB;
+import com.teamheath.bot.Commands.Users.User.UserDB;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -7,19 +9,23 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "team_scores")
-public class TeamScoreDB {
+@Table(name = "user_scores")
+public class UserScoreDB {
 
     @Id
     @GeneratedValue
     private UUID id;
 
     @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserDB user;
+
+    @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
     private TeamDB team;
 
     @Column(nullable = false)
-    private Integer score; // 0 to 100
+    private int score;
 
     @CreationTimestamp
     @Column(name = "recorded_at", nullable = false, updatable = false)
@@ -35,6 +41,14 @@ public class TeamScoreDB {
         this.id = id;
     }
 
+    public UserDB getUser() {
+        return user;
+    }
+
+    public void setUser(UserDB user) {
+        this.user = user;
+    }
+
     public TeamDB getTeam() {
         return team;
     }
@@ -43,11 +57,11 @@ public class TeamScoreDB {
         this.team = team;
     }
 
-    public Integer getScore() {
+    public int getScore() {
         return score;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(int score) {
         this.score = score;
     }
 

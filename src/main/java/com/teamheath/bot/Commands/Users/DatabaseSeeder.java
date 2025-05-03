@@ -1,5 +1,9 @@
 package com.teamheath.bot.Commands.Users;
 
+import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import com.teamheath.bot.Commands.Users.Org.OrgService;
+import com.teamheath.bot.Commands.Users.User.UserDB;
+import com.teamheath.bot.Commands.Users.User.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;

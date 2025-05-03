@@ -1,5 +1,6 @@
-package com.teamheath.bot.Commands.Users;
+package com.teamheath.bot.Commands.Users.User;
 
+import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 

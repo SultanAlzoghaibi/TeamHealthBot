@@ -2,8 +2,8 @@ package com.teamheath.bot;
 
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
-import com.teamheath.bot.Commands.Users.OrgService;
-import com.teamheath.bot.Commands.Users.UserService;
+import com.teamheath.bot.Commands.Users.Org.OrgService;
+import com.teamheath.bot.Commands.Users.User.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

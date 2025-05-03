@@ -1,6 +1,10 @@
 package com.teamheath.bot.Commands.Users;
 
 import com.teamheath.bot.Commands.Command;
+import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import com.teamheath.bot.Commands.Users.Org.OrgService;
+import com.teamheath.bot.Commands.Users.User.UserDB;
+import com.teamheath.bot.Commands.Users.User.UserService;
 
 import java.util.List;
 
