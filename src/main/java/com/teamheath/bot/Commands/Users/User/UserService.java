@@ -1,4 +1,4 @@
-package com.teamheath.bot.Commands.Users;
+package com.teamheath.bot.Commands.Users.User;
 
 import org.springframework.stereotype.Service;
 
