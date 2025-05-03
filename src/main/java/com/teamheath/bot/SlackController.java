@@ -3,6 +3,7 @@ package com.teamheath.bot;
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.OrgService;
+import com.teamheath.bot.Commands.Users.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,8 @@ public class SlackController {
     private final Map<String, CommandFactory> commandMap = new HashMap<>();
     private final ExecutorService executor = Executors.newFixedThreadPool(2); // Tune size
     private final OrgService orgService;
-    
+    private UserService userService;
+
 
     @FunctionalInterface
     public interface CommandFactory {
@@ -32,7 +34,9 @@ public class SlackController {
                 () -> new CommandCheckin(userId, channelId, scoreText, responseURL ).run()
         );
         commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->
-                () -> new CommandMyscores(userId, channelId, scoreText, responseURL, orgService ).run()
+                () -> new CommandMyscores(userId, channelId,
+                        scoreText, responseURL,
+                        orgService, userService ).run()
         );
         this.orgService = orgService;
     }

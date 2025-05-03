@@ -27,6 +27,7 @@ public class UserDB {
     @CreationTimestamp
     private Instant createdAt;
 
+
     // Getters and Setters
     public UUID getId() {
         return id;

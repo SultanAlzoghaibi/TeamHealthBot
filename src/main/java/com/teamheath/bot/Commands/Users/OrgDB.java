@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,8 +26,8 @@ public class OrgDB {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
-    private List<UserDB> users;
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<UserDB> users = new ArrayList<>();
 
     // Getters and Setters
     public List<UserDB> getUsers() {
@@ -68,4 +69,7 @@ public class OrgDB {
         this.createdAt = createdAt;
     }
 
+    public OrgDB orElse(Object o) {
+        return (OrgDB) o;
+    }
 }

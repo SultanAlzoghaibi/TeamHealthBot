@@ -14,8 +14,8 @@ public class OrgService {
         return orgRepository.findAll();
     }
 
-    public void saveOrganization(OrgDB org) {
-        orgRepository.save(org);
+    public OrgDB saveOrganization(OrgDB org) {
+        return orgRepository.save(org);
     }
 
     public boolean existsBySlackTeamId(String t654321) {
@@ -23,5 +23,9 @@ public class OrgService {
             return false;
         }
         return true;
+    }
+
+    public OrgDB findBySlackTeamId(String t123456) {
+        return orgRepository.findBySlackTeamId(t123456);
     }
 }
