@@ -1,45 +1,71 @@
 package com.teamheath.bot.Commands.Users;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
+@Table(name = "organizations")
 public class OrgDB {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
-    private String orgId;      // e.g., Slack workspace ID
-    private String orgName;    // Optional: name of the organization
+    @Column(nullable = false)
+    private String name;
 
-    public OrgDB() {
+    @Column(name = "slack_team_id", unique = true, nullable = false)
+    private String slackTeamId;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    private List<UserDB> users;
+
+    // Getters and Setters
+    public List<UserDB> getUsers() {
+        return users;
     }
 
-    public OrgDB(String orgId, String orgName) {
-        this.orgId = orgId;
-        this.orgName = orgName;
+    public void setUsers(List<UserDB> users) {
+        this.users = users;
     }
-
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public String getOrgId() {
-        return orgId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
+    public String getName() {
+        return name;
     }
 
-    public String getOrgName() {
-        return orgName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setOrgName(String orgName) {
-        this.orgName = orgName;
+    public String getSlackTeamId() {
+        return slackTeamId;
     }
+
+    public void setSlackTeamId(String slackTeamId) {
+        this.slackTeamId = slackTeamId;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
 }

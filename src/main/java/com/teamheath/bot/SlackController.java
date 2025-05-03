@@ -2,6 +2,7 @@ package com.teamheath.bot;
 
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
+import com.teamheath.bot.Commands.Users.OrgService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +16,9 @@ import java.util.concurrent.Executors;
 public class SlackController {
 
     private final Map<String, CommandFactory> commandMap = new HashMap<>();
-    private final ExecutorService executor = Executors.newFixedThreadPool(10); // Tune size
+    private final ExecutorService executor = Executors.newFixedThreadPool(2); // Tune size
+    private final OrgService orgService;
+    
 
     @FunctionalInterface
     public interface CommandFactory {
@@ -24,15 +27,14 @@ public class SlackController {
 
     }
 
-    public SlackController() {
+    public SlackController(OrgService orgService) {
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandCheckin(userId, channelId, scoreText, responseURL ).run()
         );
-        commandMap.put("/myScores", (userId, channelId, scoreText, responseURL) ->
-                () -> new CommandMyscores(userId, channelId, scoreText, responseURL ).run()
+        commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandMyscores(userId, channelId, scoreText, responseURL, orgService ).run()
         );
-
-
+        this.orgService = orgService;
     }
 
 
@@ -53,7 +55,7 @@ public class SlackController {
             executor.submit(task.create(userId, channelId, scoreText, response_url));
 
             System.out.println("RESPONSE SEND BACK");
-            return ResponseEntity.ok("✅ Running `" + command + "`");
+            return ResponseEntity.ok("✅ received `" + command + "| wait for response now...");
         } else {
             return ResponseEntity.badRequest().body("❌ Unknown command: `" + command + "`");
         }
