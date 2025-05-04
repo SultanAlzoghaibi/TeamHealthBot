@@ -33,12 +33,31 @@ public class CommandMyscores implements Command {
 
     @Override
     public void run() {
-        List<OrgDB> allOrgs = orgService.getAllOrganizations();
+        // Step 1: Find the user
+        UserDB matchedUser = null;
 
+        try {
+            matchedUser = userService.findBySlackUserId(userId);
+            OrgDB matchedOrg = matchedUser.getOrganization();
+            System.out.println("✅ Matched User Info:");
+            System.out.println("Slack User ID: " + matchedUser.getSlackUserId());
+            System.out.println("Role: " + matchedUser.getRole());
+            System.out.println("Organization: " + (matchedOrg != null ? matchedOrg.getName() : "Unknown"));
+
+        } catch (Exception e) {
+            System.out.println("❌ Error while fetching user: " + e.getMessage());
+
+        }
+        if (matchedUser == null) {
+            System.out.println("❌ User not found for Slack ID: " + userId);
+        }
+
+        // Step 3: Print all users grouped by organization
+        System.out.println("📊 All Organizations & Their Users:");
+        List<OrgDB> allOrgs = orgService.getAllOrganizations();
         for (OrgDB org : allOrgs) {
             System.out.println("• Org: " + org.getName() + " (Slack ID: " + org.getSlackTeamId() + ")");
-
-            List<UserDB> users = org.getUsers(); // assumes @OneToMany is working
+            List<UserDB> users = org.getUsers();
             if (users == null || users.isEmpty()) {
                 System.out.println("    ↳ No users.");
             } else {

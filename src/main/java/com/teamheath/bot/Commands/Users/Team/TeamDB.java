@@ -31,11 +31,23 @@ public class TeamDB {
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
     private List<TeamScoreDB> teamScores;
 
+    @ManyToOne
+    @JoinColumn(name = "team_id")  // optional: add nullable = true if needed
+    private TeamDB team;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     // Getters & Setters
+
+    public TeamDB getTeam() {
+        return team;
+    }
+
+    public void setTeam(TeamDB team) {
+        this.team = team;
+    }
 
     public UUID getId() {
         return id;

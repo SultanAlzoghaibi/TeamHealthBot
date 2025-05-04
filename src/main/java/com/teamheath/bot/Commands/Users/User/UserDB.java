@@ -1,6 +1,7 @@
 package com.teamheath.bot.Commands.Users.User;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import com.teamheath.bot.Commands.Users.Team.TeamDB;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -27,6 +28,10 @@ public class UserDB {
 
     @CreationTimestamp
     private Instant createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "team_id")  // optional: nullable = true if user might not be in a team
+    private TeamDB team;
 
 
     // Getters and Setters
@@ -61,5 +66,11 @@ public class UserDB {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public UserDB orElse(Object o) {
+        return (UserDB) o;
+    }
+
+
 }
 
