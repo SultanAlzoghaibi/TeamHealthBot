@@ -28,7 +28,11 @@ public class DatabaseSeeder implements CommandLineRunner {
         // Add 10 Users linked to the Org
         for (int i = 1; i <= 10; i++) {
             UserDB user = new UserDB();
+
             user.setSlackUserId("U" + String.format("%08d", i)); // padded like U00000001
+            if(i == 1){
+                user.setSlackUserId("U08PCRZSQLD");
+            }
             user.setRole("USER");
             user.setOrganization(org); // link to org
             userService.saveUser(user);

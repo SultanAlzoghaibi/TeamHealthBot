@@ -51,6 +51,7 @@ public class SlackController {
         String response_url = payload.get("response_url");
 
     // Slack has a 3 sec timout rule
+        System.out.println("user_id: "+ userId);
 
         CommandFactory task = commandMap.get(command);
 
