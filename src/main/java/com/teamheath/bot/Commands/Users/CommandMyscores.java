@@ -42,7 +42,11 @@ public class CommandMyscores implements Command {
             System.out.println("✅ Matched User Info:");
             System.out.println("Slack User ID: " + matchedUser.getSlackUserId());
             System.out.println("Role: " + matchedUser.getRole());
-            System.out.println("Organization: " + (matchedOrg != null ? matchedOrg.getName() : "Unknown"));
+            if (matchedUser.getTeam() != null) {
+                System.out.println("Team: " + matchedUser.getTeam().getName());
+            } else {
+                System.out.println("Team: None");
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error while fetching user: " + e.getMessage());

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+
 public class UserDB {
 
     @Id
@@ -22,16 +23,16 @@ public class UserDB {
     @Column(nullable = false)
     private String role; // e.g., "ADMIN", "USER", "PM"
 
-    @ManyToOne
-    @JoinColumn(name = "organization_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
     private OrgDB organization;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private TeamDB team;
 
     @CreationTimestamp
     private Instant createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "team_id")  // optional: nullable = true if user might not be in a team
-    private TeamDB team;
 
 
     // Getters and Setters
@@ -72,5 +73,10 @@ public class UserDB {
     }
 
 
+    public TeamDB getTeam() { return team;};
+    public void setTeam(TeamDB team) {
+        this.team = team;
+
+    }
 }
 
