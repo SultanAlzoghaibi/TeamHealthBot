@@ -1,8 +1,13 @@
 package com.teamheath.bot.Commands.Users.User;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
 import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -19,10 +24,18 @@ public class UserService {
 
     @Transactional
     public UserDB findBySlackUserId(String userId) {
-        return userRepository.findBySlackUserId(userId).orElse(null);
+        return (UserDB) userRepository.findWithTeamBySlackUserId(userId).orElse(null);
     }
-
     public void deleteAll() {
         userRepository.deleteAll();
+    }
+
+    @Query("SELECT u FROM UserDB u LEFT JOIN FETCH u.team WHERE u.slackUserId = :userId")
+    Optional<UserDB> findWithTeamBySlackUserId(@Param("userId") String userId) {
+        return null;
+    }
+
+    public void saveScore(UserScoreDB score) {
+
     }
 }

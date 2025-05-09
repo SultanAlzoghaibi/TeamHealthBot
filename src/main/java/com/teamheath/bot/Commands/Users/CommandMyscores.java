@@ -66,7 +66,8 @@ public class CommandMyscores implements Command {
                 System.out.println("    ↳ No users.");
             } else {
                 for (UserDB user : users) {
-                    System.out.println("    ↳ User: " + user.getSlackUserId() + " | Role: " + user.getRole());
+                    String teamName = (user.getTeam() != null) ? user.getTeam().getName() : "No team";
+                    System.out.println("    ↳ User: " + user.getSlackUserId() + " | Role: " + user.getRole() + " | Team: " + teamName);
                 }
             }
         }
