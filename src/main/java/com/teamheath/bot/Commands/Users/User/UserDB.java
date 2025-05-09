@@ -23,11 +23,11 @@ public class UserDB {
     @Column(nullable = false)
     private String role; // e.g., "ADMIN", "USER", "PM"
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organization_id")
     private OrgDB organization;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "team_id")
     private TeamDB team;
 

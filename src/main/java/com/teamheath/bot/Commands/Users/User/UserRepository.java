@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<UserDB, UUID> {
     Optional<UserDB> findBySlackUserId(String slackUserId);
+
+    Optional<Object> findWithTeamBySlackUserId(String userId);
 }
