@@ -4,6 +4,7 @@ import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.User.UserService;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ public class SlackController {
     private final Map<String, CommandFactory> commandMap = new HashMap<>();
     private final ExecutorService executor = Executors.newFixedThreadPool(2); // Tune size
     private final OrgService orgService;
+    private final BeanFactory applicationContext;
     private UserService userService;
 
 
@@ -29,16 +31,25 @@ public class SlackController {
 
     }
 
-    public SlackController(OrgService orgService) {
+    public SlackController(OrgService orgService, OrgService orgService1, UserService userService, BeanFactory applicationContext) {
+        this.orgService = orgService1;
+        this.applicationContext = applicationContext;
+        this.userService = userService;
+
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
-                () -> new CommandCheckin(userId, channelId, scoreText, responseURL ).run()
+                () -> new CommandCheckin(userId, channelId, scoreText, responseURL).run()
         );
+
         commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->
-                () -> new CommandMyscores(userId, channelId,
-                        scoreText, responseURL,
-                        orgService, userService ).run()
+                () -> new CommandMyscores(
+                        userId,
+                        channelId,
+                        scoreText,
+                        responseURL,
+                        orgService,
+                        userService
+                ).run()
         );
-        this.orgService = orgService;
     }
 
 

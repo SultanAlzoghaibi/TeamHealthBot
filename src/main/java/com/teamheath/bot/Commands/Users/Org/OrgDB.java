@@ -28,7 +28,7 @@ public class OrgDB {
     private Instant createdAt;
 
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<UserDB> users = new ArrayList<>();
+    private List<UserDB> users;
 
     // Getters and Setters
     public List<UserDB> getUsers() {

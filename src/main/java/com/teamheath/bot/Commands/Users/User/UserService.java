@@ -1,6 +1,7 @@
 package com.teamheath.bot.Commands.Users.User;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +17,12 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public UserDB findBySlackUserId(String userId) {
         return userRepository.findBySlackUserId(userId).orElse(null);
+    }
+
+    public void deleteAll() {
+        userRepository.deleteAll();
     }
 }

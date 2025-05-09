@@ -28,4 +28,8 @@ public class OrgService {
     public OrgDB findBySlackTeamId(String t123456) {
         return orgRepository.findBySlackTeamId(t123456);
     }
+
+    public void deleteAll() {
+        orgRepository.deleteAll();
+    }
 }

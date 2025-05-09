@@ -21,33 +21,23 @@ public class TeamDB {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "organization_id", nullable = false)
-    private OrgDB organization;
-
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserDB> users;
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TeamScoreDB> teamScores;
 
-    @ManyToOne
-    @JoinColumn(name = "team_id")  // optional: add nullable = true if needed
-    private TeamDB team;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private OrgDB organization;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+
+
     // Getters & Setters
-
-    public TeamDB getTeam() {
-        return team;
-    }
-
-    public void setTeam(TeamDB team) {
-        this.team = team;
-    }
 
     public UUID getId() {
         return id;
