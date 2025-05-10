@@ -4,6 +4,7 @@ import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.User.UserService;
+import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ public class SlackController {
     private final ExecutorService executor = Executors.newFixedThreadPool(2); // Tune size
     private final OrgService orgService;
     private final BeanFactory applicationContext;
+    private final UserScoreService userScoreService;
     private UserService userService;
 
 
@@ -31,10 +33,12 @@ public class SlackController {
 
     }
 
-    public SlackController(OrgService orgService, OrgService orgService1, UserService userService, BeanFactory applicationContext) {
+    public SlackController(OrgService orgService,
+                           OrgService orgService1, UserService userService, BeanFactory applicationContext, UserScoreService userScoreService, UserScoreService userScoreService1) {
         this.orgService = orgService1;
         this.applicationContext = applicationContext;
         this.userService = userService;
+        this.userScoreService = userScoreService1;
 
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandCheckin(userId, channelId, scoreText, responseURL).run()
@@ -47,7 +51,8 @@ public class SlackController {
                         scoreText,
                         responseURL,
                         orgService,
-                        userService
+                        userService,
+                        userScoreService
                 ).run()
         );
     }

@@ -5,8 +5,12 @@ import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
+import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
+import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 public class CommandMyscores implements Command {
@@ -17,18 +21,23 @@ public class CommandMyscores implements Command {
     private final String responseUrl;
     private final OrgService orgService;
     private final UserService userService;
+    private final UserScoreService userScoreService;
+
 
     public CommandMyscores(String userId,
                            String channelId,
                            String score,
                            String responseUrl,
-                           OrgService orgService, UserService userService) {
+                           OrgService orgService,
+                           UserService userService,
+                           UserScoreService userScoreService) {
         this.userId = userId;
         this.channelId = channelId;
         this.score = score;
         this.responseUrl = responseUrl;
         this.orgService = orgService;
         this.userService = userService;
+        this.userScoreService = userScoreService;
     }
 
     @Override
@@ -56,18 +65,31 @@ public class CommandMyscores implements Command {
             System.out.println("❌ User not found for Slack ID: " + userId);
         }
 
-        // Step 3: Print all users grouped by organization
         System.out.println("📊 All Organizations & Their Users:");
         List<OrgDB> allOrgs = orgService.getAllOrganizations();
+
         for (OrgDB org : allOrgs) {
             System.out.println("• Org: " + org.getName() + " (Slack ID: " + org.getSlackTeamId() + ")");
             List<UserDB> users = org.getUsers();
+
             if (users == null || users.isEmpty()) {
                 System.out.println("    ↳ No users.");
             } else {
+                // Preload scores once for this org's users
+                Map<UUID, UserScoreDB> recentScoresMap = userScoreService.getRecentScoresForUsers(users);
+
                 for (UserDB user : users) {
                     String teamName = (user.getTeam() != null) ? user.getTeam().getName() : "No team";
-                    System.out.println("    ↳ User: " + user.getSlackUserId() + " | Role: " + user.getRole() + " | Team: " + teamName);
+
+                    // Lookup most recent score from the preloaded map
+                    String recentScore = recentScoresMap.containsKey(user.getId())
+                            ? String.valueOf(recentScoresMap.get(user.getId()).getScore())
+                            : "No scores";
+
+                    System.out.println("    ↳ User: " + user.getSlackUserId()
+                            + " | Role: " + user.getRole()
+                            + " | Team: " + teamName
+                            + " | Recent-score: " + recentScore);
                 }
             }
         }

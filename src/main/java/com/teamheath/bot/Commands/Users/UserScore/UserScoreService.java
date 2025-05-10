@@ -1,10 +1,10 @@
 package com.teamheath.bot.Commands.Users.UserScore;
 
+import com.teamheath.bot.Commands.Users.User.UserDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,5 +42,17 @@ public class UserScoreService {
     @Transactional(readOnly = true)
     public List<UserScoreDB> getAllScores() {
         return userScoreRepository.findAll();
+    }
+
+
+    public Map<UUID, UserScoreDB> getRecentScoresForUsers(List<UserDB> users) {
+        Map<UUID, UserScoreDB> result = new HashMap<>();
+        for (UserDB user : users) {
+            List<UserScoreDB> scores = userScoreRepository.findByUserIdOrderByRecordedAtDesc(user.getId());
+            if (!scores.isEmpty()) {
+                result.put(user.getId(), scores.get(0)); // latest score
+            }
+        }
+        return result;
     }
 }
