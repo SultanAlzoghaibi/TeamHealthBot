@@ -58,8 +58,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                 UserScoreDB score = new UserScoreDB();
                 score.setUser(user);
                 score.setTeam(user.getTeam());
-                score.setScore((int) (Math.random() * 101)); // Random score 0–100
-                userScoreService.saveScore(score);
+                score.setScore((int) (83+i)); // Random score 0–10
+                userScoreService.saveScore(score); // ✅ ACTUALLY SAVE IT
             }
 
         }

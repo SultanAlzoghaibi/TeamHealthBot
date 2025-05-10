@@ -2,7 +2,9 @@ package com.teamheath.bot.Commands.Users.User;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
+import com.teamheath.bot.Commands.Users.UserScore.UserScoreRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,9 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    @Autowired
+    private UserScoreRepository userScoreRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -35,7 +40,8 @@ public class UserService {
         return null;
     }
 
-    public void saveScore(UserScoreDB score) {
 
+    public UserScoreDB saveScore(UserScoreDB score) {
+        return userScoreRepository.save(score);
     }
 }
