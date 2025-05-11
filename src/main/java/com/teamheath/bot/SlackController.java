@@ -24,7 +24,7 @@ public class SlackController {
     private final BeanFactory applicationContext;
     private final UserScoreService userScoreService;
     private UserService userService;
-
+    private RedisCacheService redisCacheService;
 
     @FunctionalInterface
     public interface CommandFactory {
@@ -41,7 +41,7 @@ public class SlackController {
         this.userScoreService = userScoreService1;
 
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
-                () -> new CommandCheckin(userId, channelId, scoreText, responseURL).run()
+                () -> new CommandCheckin(userId, channelId, scoreText, responseURL, redisCacheService).run()
         );
 
         commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->
