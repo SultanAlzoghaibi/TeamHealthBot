@@ -4,6 +4,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -15,31 +17,37 @@ public class RedisCacheService {
         this.redisTemplate = redisTemplate;
     }
 
-    public void cacheCheckin(String userId, String teamId, int score) {
-        // Cache the last score
-        redisTemplate.opsForValue().set("user:" + userId + ":last_score", String.valueOf(score));
-
-        // Set check-in lock for this user under this team
-        String checkInKey = "team:" + teamId + ":user:" + userId + ":checked_in";
-        redisTemplate.opsForValue().set(checkInKey, "1", Duration.ofHours(24));
+    public boolean hasCheckedIn(String orgId, String teamId, String userId) {
+        String key = "org:" + orgId + ":team:" + teamId + ":scores";
+        return Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(key, userId));
     }
 
-    public boolean hasCheckedIn(String teamId, String userId) {
-        String key = "team:" + teamId + ":user:" + userId + ":checked_in";
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    public void cacheScore(String orgId, String teamId, String userId, int score) {
+        String key = "org:" + orgId + ":team:" + teamId + ":scores";
+        redisTemplate.opsForHash().put(key, userId, String.valueOf(score));
+        redisTemplate.expire(key, Duration.ofHours(12)); // Optional cleanup
     }
 
-    public Optional<Integer> getLastScore(String userId) {
-        String val = redisTemplate.opsForValue().get("user:" + userId + ":last_score");
-        if (val != null) {
-            return Optional.of(Integer.parseInt(val));
+    public Optional<Integer> getLastScore(String orgId, String teamId, String userId) {
+        String key = "org:" + orgId + ":team:" + teamId + ":scores";
+        Object raw = redisTemplate.opsForHash().get(key, userId);
+        if (raw != null) {
+            try {
+                return Optional.of(Integer.parseInt(raw.toString()));
+            } catch (NumberFormatException ignored) {}
         }
         return Optional.empty();
     }
 
-    public void markCheckedIn(String teamId, String userId) {
-        String checkInKey = "team:" + teamId + ":user:" + userId + ":checked_in";
-        redisTemplate.opsForValue().set(checkInKey, "1", Duration.ofHours(24));
+    public Map<String, String> getTeamScores(String orgId, String teamId) {
+        String key = "org:" + orgId + ":team:" + teamId + ":scores";
+        Map<Object, Object> raw = redisTemplate.opsForHash().entries(key);
 
+        // Convert to <String, String>
+        Map<String, String> result = new HashMap<>();
+        for (Map.Entry<Object, Object> entry : raw.entrySet()) {
+            result.put(entry.getKey().toString(), entry.getValue().toString());
+        }
+        return result;
     }
 }

@@ -28,31 +28,48 @@ public class CommandCheckin implements Command {
 
     @Override
     public void run() {
+        System.out.println("run checkin");
         // Look up teamId by userId (e.g., from DB or service)
-        String teamId = getTeamIdFromUser(userId); // implement this
+        // 1. Get teamId (you'll replace this with a real DB/service lookup)
+        String teamId = getTeamIdFromUser(userId);
+        String orgId = getOrgIdFromTeamId(teamId); // Add this if nesting by org
 
         // Check if user already submitted
-        if (redisCacheService.hasCheckedIn(teamId, userId)) {
-            System.out.println("User <@" + userId + "> already checked in. Ignoring duplicate.");
+        if (redisCacheService.hasCheckedIn(orgId, teamId, userId)) {
+            System.out.println("User <@" + userId + "> already checked in. INGORIRNG duplicate.");
             return;
         }
+        try {
+            int numericScore = Integer.parseInt(score);
 
-        // Mark check-in in Redis (with TTL)
-        redisCacheService.markCheckedIn(teamId, userId);
+            // Optional: Add validation range check (e.g., 1–10)
+            if (numericScore <= 1 || numericScore >= 100) {
+                System.out.println("❌ Invalid score range. Must be between 1 and 10.");
+                return;
+            }
+        redisCacheService.cacheScore(orgId, teamId, userId, Integer.parseInt(score));
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid score format. Must be a number.");
+        }
 
         System.out.println("✅ Checkin from <@" + userId + "> with score " + score + " in " + channelId);
-
         fill++;
         System.out.println("fill " + fill);
 
         if (fill > 2) {
             System.out.println("🚀 run gRPC");
             // TODO: gRPC scoring call here
+
         }
     }
 
     private String getTeamIdFromUser(String userId) {
-        // Temporary stub: replace with actual DB or userService call
-        return "T12346"; // Just hardcode for testing
+        // Temporary stub:
+        return "0b50b8b5-a4ee-4ec8-a78e-3269f64e1bfe"; // Just hardcode for testing
+    }
+
+    private String getOrgIdFromTeamId(String teamId) {
+        // Temporary stub:
+        return "d21c3a04-adc4-4ab1-a60b-71125819faa0"; // Just hardcode for testing
     }
 }

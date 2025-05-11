@@ -6,6 +6,7 @@ import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,9 @@ public class SlackController {
     private final BeanFactory applicationContext;
     private final UserScoreService userScoreService;
     private UserService userService;
+
+
+    @Autowired
     private RedisCacheService redisCacheService;
 
     @FunctionalInterface
@@ -41,7 +45,11 @@ public class SlackController {
         this.userScoreService = userScoreService1;
 
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
-                () -> new CommandCheckin(userId, channelId, scoreText, responseURL, redisCacheService).run()
+                () -> new CommandCheckin(userId,
+                        channelId,
+                        scoreText,
+                        responseURL,
+                        redisCacheService).run()
         );
 
         commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->
