@@ -24,8 +24,8 @@ public class RedisCacheService {
 
     public void cacheScore(String orgId, String teamId, String userId, int score) {
         String key = "org:" + orgId + ":team:" + teamId + ":scores";
-        redisTemplate.opsForHash().put(key, userId, String.valueOf(score));
-        redisTemplate.expire(key, Duration.ofHours(12)); // Optional cleanup
+        redisTemplate.opsForHash().increment(key, userId, score);
+        redisTemplate.expire(key, Duration.ofHours(12));
     }
 
     public Optional<Integer> getLastScore(String orgId, String teamId, String userId) {
