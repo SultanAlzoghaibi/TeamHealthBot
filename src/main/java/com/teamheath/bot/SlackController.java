@@ -1,5 +1,6 @@
 package com.teamheath.bot;
 
+import com.teamhealth.grpc.ScoreServiceGrpc;
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
@@ -26,6 +27,8 @@ public class SlackController {
     private final UserScoreService userScoreService;
     private UserService userService;
 
+    @Autowired
+    private final ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub;
 
     @Autowired
     private RedisCacheService redisCacheService;
@@ -38,18 +41,25 @@ public class SlackController {
     }
 
     public SlackController(OrgService orgService,
-                           OrgService orgService1, UserService userService, BeanFactory applicationContext, UserScoreService userScoreService, UserScoreService userScoreService1) {
+                           OrgService orgService1,
+                           UserService userService,
+                           BeanFactory applicationContext,
+                           UserScoreService userScoreService,
+                           UserScoreService userScoreService1,
+                           ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub) {
         this.orgService = orgService1;
         this.applicationContext = applicationContext;
         this.userService = userService;
         this.userScoreService = userScoreService1;
+        this.grpcStub = grpcStub;
 
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandCheckin(userId,
                         channelId,
                         scoreText,
                         responseURL,
-                        redisCacheService).run()
+                        redisCacheService,
+                        grpcStub).run()
         );
 
         commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->

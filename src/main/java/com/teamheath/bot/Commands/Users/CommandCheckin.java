@@ -9,6 +9,11 @@ import com.teamheath.bot.RedisCacheService;
 import com.teamhealth.grpc.ScoreProto.CalculateScoreRequest;
 import com.teamhealth.grpc.ScoreProto.CalculateScoreResponse;
 import com.teamhealth.grpc.ScoreProto;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
@@ -20,7 +25,8 @@ public class CommandCheckin implements Command {
     private final String score;
     private final String responseUrl;
 
-    private ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub;
+    private final ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub;
+
 
     private static int fill = 0;
 
@@ -28,13 +34,14 @@ public class CommandCheckin implements Command {
                           String channelId,
                           String score,
                           String responseUrl,
-                          RedisCacheService redisCacheService) {
+                          RedisCacheService redisCacheService,
+                          ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub) {
         this.userId = userId;
         this.channelId = channelId;
         this.score = score;
         this.responseUrl = responseUrl;
         this.redisCacheService = redisCacheService;
-
+        this.grpcStub = grpcStub;
     }
 
     @Override
@@ -67,9 +74,9 @@ public class CommandCheckin implements Command {
         fill++;
         System.out.println("fill " + fill);
 
-        if (fill > 2) {
-            sendScoresViaGRPC(orgId, teamId);
-        }
+
+        sendScoresViaGRPC(orgId, teamId);
+
 
     }
 
@@ -85,14 +92,12 @@ public class CommandCheckin implements Command {
 
     private void sendScoresViaGRPC(String orgId, String teamId) {
         System.out.println("🚀 run gRPC");
-
         // 1. Load scores from Redis
-        Map<String, String> scores = redisCacheService.getTeamScores(orgId, teamId);
 
+        Map<String, String> scores = redisCacheService.getTeamScores(orgId, teamId);
         // 2. Build gRPC request
         CalculateScoreRequest.Builder requestBuilder = CalculateScoreRequest.newBuilder()
                 .setTeamId(teamId);
-
         for (Map.Entry<String, String> entry : scores.entrySet()) {
             try {
                 System.out.println("Key: " + entry.getKey() + "| " +"value: " + entry.getValue());
@@ -102,12 +107,17 @@ public class CommandCheckin implements Command {
                 System.out.println("⚠️ Invalid score for user: " + entry.getKey());
             }
         }
-
         CalculateScoreRequest request = requestBuilder.build();
 
         // 3. Send request to gRPC service
         try {
+
+            long start = System.nanoTime();
             CalculateScoreResponse response = grpcStub.calculateScore(request);
+            long end = System.nanoTime();
+
+            System.out.println("🕒 gRPC call took " + (end - start) + " ns");
+
             System.out.println("✅ Final team score: " + response.getFinalScore());
         } catch (Exception e) {
             System.out.println("❌ gRPC call failed: " + e.getMessage());
