@@ -53,7 +53,14 @@ public class CommandCheckin implements Command {
         String orgId = getOrgIdFromTeamId(teamId); // Add this if nesting by org
 
         // Check if user already submitted
-        if (redisCacheService.hasCheckedIn(orgId, teamId, userId)) {
+        long startTime = System.nanoTime();
+        boolean hasCheckedIn = redisCacheService.hasCheckedIn(orgId, teamId, userId);
+        long endTime = System.nanoTime();
+        double elapsedMs = (endTime - startTime) ;
+        System.out.println("Redis check took: " + elapsedMs + "nano");
+
+        if (hasCheckedIn) {
+
             System.out.println("User <@" + userId + "> already checked in. INGORIRNG duplicate.");
             return;
         }
@@ -112,13 +119,19 @@ public class CommandCheckin implements Command {
         // 3. Send request to gRPC service
         try {
 
-            long start = System.nanoTime();
-            CalculateScoreResponse response = grpcStub.calculateScore(request);
-            long end = System.nanoTime();
+            long totalTime = 0;
 
-            System.out.println("🕒 gRPC call took " + (end - start) + " ns");
+            for (int i = 0; i < 10; i++) {
+                long start = System.nanoTime();
+                CalculateScoreResponse response = grpcStub.calculateScore(request);
+                long end = System.nanoTime();
+                long duration = end - start;
+                totalTime += duration;
+            }
 
-            System.out.println("✅ Final team score: " + response.getFinalScore());
+            long average = totalTime / 10;
+            System.out.println("📊 Average gRPC call time: " + average + " ns");
+
         } catch (Exception e) {
             System.out.println("❌ gRPC call failed: " + e.getMessage());
             e.printStackTrace();
