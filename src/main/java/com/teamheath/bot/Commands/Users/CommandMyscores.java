@@ -46,7 +46,12 @@ public class CommandMyscores implements Command {
         UserDB matchedUser = null;
 
         try {
+            long startTime = System.nanoTime();
             matchedUser = userService.findBySlackUserId(userId);
+            long endTime = System.nanoTime();
+            double elapsedMs = (endTime - startTime) ;
+            System.out.println("Postgre check took: " + elapsedMs + " nano");
+
             OrgDB matchedOrg = matchedUser.getOrganization();
             System.out.println("✅ Matched User Info:");
             System.out.println("Slack User ID: " + matchedUser.getSlackUserId());
