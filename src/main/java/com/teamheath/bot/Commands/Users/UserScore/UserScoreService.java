@@ -55,4 +55,10 @@ public class UserScoreService {
         }
         return result;
     }
+
+    public UserScoreDB getMostRecentScore(UserDB matchedUser) {
+        return userScoreRepository
+                .findTopByUserOrderByRecordedAtDesc(matchedUser)
+                .orElse(null);
+    }
 }

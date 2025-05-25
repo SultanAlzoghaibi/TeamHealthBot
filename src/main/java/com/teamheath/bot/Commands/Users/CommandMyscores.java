@@ -7,10 +7,13 @@ import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
+import com.teamheath.bot.tools.Response3SecMore;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.teamheath.bot.tools.Response3SecMore.response3SecMore;
 
 
 public class CommandMyscores implements Command {
@@ -44,7 +47,7 @@ public class CommandMyscores implements Command {
     public void run() {
         // Step 1: Find the user
         UserDB matchedUser = null;
-
+        String message = "!!*\n";
         try {
             long startTime = System.nanoTime();
             matchedUser = userService.findBySlackUserId(userId);
@@ -55,7 +58,17 @@ public class CommandMyscores implements Command {
             OrgDB matchedOrg = matchedUser.getOrganization();
             System.out.println("✅ Matched User Info:");
             System.out.println("Slack User ID: " + matchedUser.getSlackUserId());
+            // Get the user's most recent score
+            UserScoreDB recentScore = userScoreService.getMostRecentScore(matchedUser);
+
+            if (recentScore != null) {
+                message = "*Your most recent score:* " + recentScore.getScore();
+            } else {
+                message = "You have not submitted any scores yet.";
+            }
+
             System.out.println("Role: " + matchedUser.getRole());
+
             if (matchedUser.getTeam() != null) {
                 System.out.println("Team: " + matchedUser.getTeam().getName());
             } else {
@@ -98,6 +111,9 @@ public class CommandMyscores implements Command {
                 }
             }
         }
+        response3SecMore(message, responseUrl);
+
+
     }
 
 
