@@ -19,4 +19,5 @@ public interface UserScoreRepository extends JpaRepository<UserScoreDB, UUID> {
     List<UserScoreDB> findByUserIdOrderByRecordedAtDesc(UUID userId);
 
     Optional<UserScoreDB> findTopByUserOrderByRecordedAtDesc(UserDB user);
+
 }
