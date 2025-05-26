@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
         - name: springboot
-          image: YOUR_DOCKERHUB_USERNAME/teamhealth-springboot:latest
+          image: teamhealth-springboot:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
           env:
