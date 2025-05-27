@@ -1,21 +1,21 @@
-# springboot-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: springboot
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: springboot
-  replicas: 1
   template:
     metadata:
       labels:
         app: springboot
     spec:
       containers:
-        - name: springboot
-          image: teamhealth-springboot
+        - name: teamhealthbot
+          image: teamhealth-springboot:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
           env:
@@ -35,9 +35,9 @@ kind: Service
 metadata:
   name: springboot-service
 spec:
+  type: LoadBalancer
   selector:
     app: springboot
   ports:
     - port: 80
       targetPort: 8001
-  type: LoadBalancer
