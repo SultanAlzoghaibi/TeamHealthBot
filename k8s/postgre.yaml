@@ -1,43 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: springboot
+  name: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: springboot
+      app: postgres
   template:
     metadata:
       labels:
-        app: springboot
+        app: postgres
     spec:
       containers:
-        - name: teamhealthbot
-          image: teamhealth-springboot:latest
-          imagePullPolicy: IfNotPresent
+        - name: postgres
+          image: postgres:16
           ports:
-            - containerPort: 8001
+            - containerPort: 5432
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/teamhealthdb
-            - name: SPRING_DATASOURCE_USERNAME
+            - name: POSTGRES_DB
+              value: teamhealthdb
+            - name: POSTGRES_USER
               value: sultan
-            - name: SPRING_DATASOURCE_PASSWORD
+            - name: POSTGRES_PASSWORD
               value: yourpassword
-            - name: SPRING_DATA_REDIS_HOST
-              value: redis
-            - name: SPRING_DATA_REDIS_PORT
-              value: "6379"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: springboot-service
+  name: postgres
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
-    app: springboot
+    app: postgres
   ports:
-    - port: 80
-      targetPort: 8001
+    - port: 5432
