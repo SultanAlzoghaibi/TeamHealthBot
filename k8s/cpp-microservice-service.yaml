@@ -1,0 +1,12 @@
+# cpp-microservice-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: cpp-microservice
+spec:
+  selector:
+    app: cpp-microservice
+  ports:
+    - port: 50051
+      targetPort: 50051
+  type: ClusterIP

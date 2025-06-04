@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
         - name: cpp-microservice
-          image: cpp-microservice:latest
+          image: cpp-grpc-microservice:latest
+          imagePullPolicy: Never   # <-- this is key
           ports:
             - containerPort: 50051
 ---

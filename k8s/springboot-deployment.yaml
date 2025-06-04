@@ -16,6 +16,7 @@ spec:
       containers:
         - name: springboot
           image: teamhealth-springboot
+          imagePullPolicy: Never  # 👈 ADD THIS LINE
           ports:
             - containerPort: 8001
           env:
@@ -26,7 +27,7 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: yourpassword
             - name: SPRING_DATA_REDIS_HOST
-              value: redis
+              value: redislet go
             - name: SPRING_DATA_REDIS_PORT
               value: "6379"
 ---
