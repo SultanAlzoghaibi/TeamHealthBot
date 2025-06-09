@@ -7,7 +7,7 @@ spec:
   selector:
     matchLabels:
       app: springboot
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -41,4 +41,4 @@ spec:
   ports:
     - port: 80
       targetPort: 8001
-  type: NodePort
+  type: ClusterIP
