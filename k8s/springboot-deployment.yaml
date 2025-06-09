@@ -27,7 +27,7 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: yourpassword
             - name: SPRING_DATA_REDIS_HOST
-              value: redislet go
+              value: redis
             - name: SPRING_DATA_REDIS_PORT
               value: "6379"
 ---
