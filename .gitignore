@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Terraform state & plugins
+.terraform/
+*.tfstate

@@ -1,13 +1,12 @@
-apiVersion: v1
+apiVersion: v1 # EKS VERSION NOW
 kind: Service
 metadata:
   name: nginx-loadbalancer
   namespace: default
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: nginx-loadbalancer
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 30080    # pick any unused port in the 30000–32767 range

@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: cpp-microservice
-          image: cpp-grpc-microservice:latest
-          imagePullPolicy: Never   # <-- this is key
+          image: sultanalzoghaibi/teamhealth-cpp:latest
+          imagePullPolicy: Always   # <-- this is key
           ports:
             - containerPort: 50051
 ---
