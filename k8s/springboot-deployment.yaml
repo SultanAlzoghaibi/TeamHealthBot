@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: springboot
-          image: teamhealth-springboot
-          imagePullPolicy: Never  # 👈 ADD THIS LINE
+          image:  sultanalzoghaibi/teamhealth-springboot:latest
+          imagePullPolicy: Always  # 👈 ADD THIS LINE
           ports:
             - containerPort: 8001
           env:
