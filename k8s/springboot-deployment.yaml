@@ -15,10 +15,17 @@ spec:
     spec:
       containers:
         - name: springboot
-          image:  sultanalzoghaibi/teamhealth-springboot:latest
+          image: 989374164925.dkr.ecr.us-east-1.amazonaws.com/teamhealth-springboot:latest
           imagePullPolicy: Always  # 👈 ADD THIS LINE
           ports:
             - containerPort: 8001
+          resources:
+            requests:
+              memory: "4096Mi"   # 4 GB RAM reserved per pod
+              cpu: "2000m"       # 2 full vCPUs reserved per pod
+            limits:
+              memory: "8192Mi"   # 8 GB RAM max allowed
+              cpu: "4000m"       # 4 vCPUs max allowed
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/teamhealthdb

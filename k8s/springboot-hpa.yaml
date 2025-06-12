@@ -9,7 +9,7 @@ spec:
     kind: Deployment
     name: springboot
   minReplicas: 2
-  maxReplicas: 3
+  maxReplicas: 100
   metrics:
     - type: Resource
       resource:

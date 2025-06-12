@@ -61,14 +61,12 @@ public class CommandCheckin implements Command {
         double elapsedMs = (endTime - startTime) ;
         System.out.println("Redis check took: " + elapsedMs + "nano");
 
-        int numericScore = -1;
-
         if (hasCheckedIn) {
             System.out.println("User <@" + userId + "> already checked in. INGORIRNG duplicate.");
             return;
         }
         try {
-            numericScore = Integer.parseInt(score);
+            int numericScore = Integer.parseInt(score);
             // Optional: Add validation range check (e.g., 1–10)
             if (numericScore <= 1 || numericScore >= 100) {
                 System.out.println("❌ Invalid score range. Must be between 1 and 10.");
@@ -85,25 +83,10 @@ public class CommandCheckin implements Command {
         System.out.println("fill " + fill);
 
 
-        Long checkinCount = redisCacheService.incrementCheckinCount(orgId, teamId);
-        System.out.println("checkinCount: " + checkinCount);
-
-// Only trigger gRPC after 5 *unique* check-ins
-        redisCacheService.cacheScore(orgId, teamId, userId, numericScore);
-        redisCacheService.addUserToTeamSet(orgId, teamId, userId);
-        long uniqueCheckins = redisCacheService.getTeamSetSize(orgId, teamId);
-        System.out.println("Unique check-ins so far: " + uniqueCheckins);
-
-// Trigger gRPC only when 5 unique users checked in
-        if (uniqueCheckins >= 5) {
-            sendScoresViaGRPC(orgId, teamId);
-            redisCacheService.clearTeamSet(orgId, teamId);         // ✅ already done
-            redisCacheService.clearTeamScores(orgId, teamId);       // ✅ ADD THIS
-        }
+        sendScoresViaGRPC(orgId, teamId);
 
 
     }
-
 
     private String getTeamIdFromUser(String userId) {
         // Temporary stub:
@@ -132,16 +115,14 @@ public class CommandCheckin implements Command {
                 System.out.println("⚠️ Invalid score for user: " + entry.getKey());
             }
         }
-
         CalculateScoreRequest request = requestBuilder.build();
 
         // 3. Send request to gRPC service
         try {
             CalculateScoreResponse response = grpcStub.calculateScore(request);
             long end = System.nanoTime();
-            int finalScore = response.getFinalScore();
 
-            response3SecMore("Team final score is: " + finalScore, responseUrl);
+            response3SecMore("lol", responseUrl);
             //System.out.println("📊 Average gRPC call time: " + average + " ns");
 
         } catch (Exception e) {
