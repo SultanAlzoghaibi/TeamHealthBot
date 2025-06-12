@@ -47,7 +47,7 @@ public class CommandMyscores implements Command {
     public void run() {
         // Step 1: Find the user
         UserDB matchedUser = null;
-        String message = "!!*\n";
+        String message = "NOT IN DB v4\n";
         try {
             long startTime = System.nanoTime();
             matchedUser = userService.findBySlackUserId(userId);
@@ -62,7 +62,7 @@ public class CommandMyscores implements Command {
             UserScoreDB recentScore = userScoreService.getMostRecentScore(matchedUser);
 
             if (recentScore != null) {
-                message = "*Your most recent score:* " + recentScore.getScore();
+                message = "v2 *Your most recent score:* " + recentScore.getScore();
             } else {
                 message = "You have not submitted any scores yet.";
             }
@@ -83,36 +83,37 @@ public class CommandMyscores implements Command {
             System.out.println("❌ User not found for Slack ID: " + userId);
         }
 
-        System.out.println("📊 All Organizations & Their Users:");
-        List<OrgDB> allOrgs = orgService.getAllOrganizations();
-
-        for (OrgDB org : allOrgs) {
-            System.out.println("• Org: " + org.getName() + " (Slack ID: " + org.getSlackTeamId() + ")");
-            List<UserDB> users = org.getUsers();
-
-            if (users == null || users.isEmpty()) {
-                System.out.println("    ↳ No users.");
-            } else {
-                // Preload scores once for this org's users
-                Map<UUID, UserScoreDB> recentScoresMap = userScoreService.getRecentScoresForUsers(users);
-
-                for (UserDB user : users) {
-                    String teamName = (user.getTeam() != null) ? user.getTeam().getName() : "No team";
-
-                    // Lookup most recent score from the preloaded map
-                    String recentScore = recentScoresMap.containsKey(user.getId())
-                            ? String.valueOf(recentScoresMap.get(user.getId()).getScore())
-                            : "No scores";
-
-                    System.out.println("    ↳ User: " + user.getSlackUserId()
-                            + " | Role: " + user.getRole()
-                            + " | Team: " + teamName
-                            + " | Recent-score: " + recentScore);
-                }
-            }
-        }
+//        System.out.println("📊 V2 All Organizations & Their Users:");
+//
+//        List<OrgDB> allOrgs = orgService.getAllOrganizations();
+//
+//        for (OrgDB org : allOrgs) {
+//            System.out.println("• Org: " + org.getName() + " (Slack ID: " + org.getSlackTeamId() + ")");
+//            List<UserDB> users = org.getUsers();
+//
+//            if (users == null || users.isEmpty()) {
+//                System.out.println("    ↳ No users.");
+//            } else {
+//                // Preload scores once for this org's users
+//                Map<UUID, UserScoreDB> recentScoresMap = userScoreService.getRecentScoresForUsers(users);
+//
+//                for (UserDB user : users) {
+//                    String teamName = (user.getTeam() != null) ? user.getTeam().getName() : "No team";
+//
+//                    // Lookup most recent score from the preloaded map
+//                    String recentScore = recentScoresMap.containsKey(user.getId())
+//                            ? String.valueOf(recentScoresMap.get(user.getId()).getScore())
+//                            : "No scores";
+//
+//                    System.out.println("    ↳ User: " + user.getSlackUserId()
+//                            + " | Role: " + user.getRole()
+//                            + " | Team: " + teamName
+//                            + " | Recent-score: " + recentScore);
+//                }
+//            }
+//        }
         response3SecMore(message, responseUrl);
-
+        System.out.println(message);
 
     }
 

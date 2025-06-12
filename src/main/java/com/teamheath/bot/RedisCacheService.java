@@ -50,4 +50,31 @@ public class RedisCacheService {
         }
         return result;
     }
+    public void addUserToTeamSet(String orgId, String teamId, String userId) {
+        String redisKey = "team_checkins:" + orgId + ":" + teamId;
+        redisTemplate.opsForSet().add(redisKey, userId);
+    }
+
+    public long getTeamSetSize(String orgId, String teamId) {
+        String redisKey = "team_checkins:" + orgId + ":" + teamId;
+        return redisTemplate.opsForSet().size(redisKey);
+    }
+
+    public void clearTeamSet(String orgId, String teamId) {
+        String redisKey = "team_checkins:" + orgId + ":" + teamId;
+        redisTemplate.delete(redisKey);
+    }
+
+    public Long incrementCheckinCount(String orgId, String teamId) {
+        String key = String.format("checkins:%s:%s", orgId, teamId);
+        Long count = redisTemplate.opsForValue().increment(key);
+        // Optional TTL
+        redisTemplate.expire(key, Duration.ofMinutes(1));
+        return count;
+    }
+
+    public void clearTeamScores(String orgId, String teamId) {
+        String redisKey = "team_checkins:" + orgId + ":" + teamId;
+        redisTemplate.delete(redisKey);
+    }
 }
