@@ -8,12 +8,12 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: springboot
-  minReplicas: 2
-  maxReplicas: 100
+  minReplicas: 24
+  maxReplicas: 30
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 60
+          averageUtilization: 70

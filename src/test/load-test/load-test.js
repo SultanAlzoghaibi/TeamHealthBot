@@ -2,8 +2,21 @@ import http from 'k6/http';
 import { sleep } from 'k6';
 
 export const options = {
-    vus: 10000,            // virtual users (increase for more load)
-    duration: '3s',    // test duration
+    stages: [
+        { duration: '5s', target: 50 },
+        { duration: '5s', target: 100 },
+        { duration: '5s', target: 200 },
+        { duration: '5s', target: 400 },
+        { duration: '5s', target: 600 },
+        { duration: '5s', target: 800 },  // peak
+        { duration: '5s', target: 400 },
+        { duration: '5s', target: 100 },
+        { duration: '5s', target: 0 },
+    ],
+    thresholds: {
+        http_req_failed: ['rate<0.05'],
+        http_req_duration: ['p(95)<2000'],
+    },
 };
 
 export default function () {
@@ -29,5 +42,5 @@ export default function () {
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
 
-    http.post('http://ac4bd24a00aac47cc863458c5176ea9f-106100581.us-east-1.elb.amazonaws.com/api/slack/commands', encoded, { headers });
+    http.post('http://a79982d90e24a434aaa37603e950c448-1822801868.us-east-1.elb.amazonaws.com/api/slack/commands', encoded, { headers });
 }

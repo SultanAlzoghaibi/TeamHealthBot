@@ -47,14 +47,9 @@ public class CommandMyscores implements Command {
     public void run() {
         // Step 1: Find the user
         UserDB matchedUser = null;
-        String message = "NOT IN DB v4\n";
+        String message = "NOT IN DB v5\n";
         try {
-            long startTime = System.nanoTime();
             matchedUser = userService.findBySlackUserId(userId);
-            long endTime = System.nanoTime();
-            double elapsedMs = (endTime - startTime) ;
-            System.out.println("Postgre check took: " + elapsedMs + " nano");
-
             OrgDB matchedOrg = matchedUser.getOrganization();
             System.out.println("✅ Matched User Info:");
             System.out.println("Slack User ID: " + matchedUser.getSlackUserId());
@@ -63,12 +58,7 @@ public class CommandMyscores implements Command {
 
             if (recentScore != null) {
                 message = "v2 *Your most recent score:* " + recentScore.getScore();
-            } else {
-                message = "You have not submitted any scores yet.";
             }
-
-            System.out.println("Role: " + matchedUser.getRole());
-
             if (matchedUser.getTeam() != null) {
                 System.out.println("Team: " + matchedUser.getTeam().getName());
             } else {
@@ -76,8 +66,7 @@ public class CommandMyscores implements Command {
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error while fetching user: " + e.getMessage());
-
+            System.out.println("❌ Error while fetching user: ");
         }
         if (matchedUser == null) {
             System.out.println("❌ User not found for Slack ID: " + userId);
@@ -116,7 +105,5 @@ public class CommandMyscores implements Command {
         System.out.println(message);
 
     }
-
-
 
 }
