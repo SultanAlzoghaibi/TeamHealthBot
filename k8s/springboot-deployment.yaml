@@ -7,7 +7,7 @@ spec:
   selector:
     matchLabels:
       app: springboot
-  replicas: 2
+  replicas: 30
   template:
     metadata:
       labels:
@@ -21,11 +21,11 @@ spec:
             - containerPort: 8001
           resources:
             requests:
-              memory: "4096Mi"   # 4 GB RAM reserved per pod
-              cpu: "2000m"       # 2 full vCPUs reserved per pod
+              cpu: "250m"       # 0.25 vCPU
+              memory: "512Mi"   # 0.5 GB RAM
             limits:
-              memory: "8192Mi"   # 8 GB RAM max allowed
-              cpu: "4000m"       # 4 vCPUs max allowed
+              cpu: "500m"       # 0.5 vCPU
+              memory: "1024Mi"  # 1 GB RAM
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/teamhealthdb

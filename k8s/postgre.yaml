@@ -18,12 +18,21 @@ spec:
           ports:
             - containerPort: 5432
           env:
+            - name: POSTGRES_MAX_CONNECTIONS
+              value: "400"
             - name: POSTGRES_DB
               value: teamhealthdb
             - name: POSTGRES_USER
               value: sultan
             - name: POSTGRES_PASSWORD
               value: yourpassword
+          resources:
+            requests:
+              cpu: "2000m"      # 2 cores
+              memory: "4Gi"
+            limits:
+              cpu: "4000m"      # 4 cores
+              memory: "8Gi"    # up to 4 GB RAM
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-storage
