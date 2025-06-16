@@ -4,20 +4,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
 public class Response3SecMore {
 
     private static final HttpClient client = HttpClient.newHttpClient();
 
-    /**
-     * Sends a follow-up message to Slack using the provided response URL.
-     *
-     * @param message     The message text to send
-     * @param responseUrl The Slack response_url
-     */
     public static void response3SecMore(String message, String responseUrl) {
         try {
-            String json = "{ \"text\": " + escapeJson(message) + " }";
+            String json = "{ \"text\": \"" + escapeJson(message) + "\" }";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(responseUrl))
@@ -32,11 +25,10 @@ public class Response3SecMore {
         }
     }
 
-    // Basic JSON string escaper
     private static String escapeJson(String raw) {
-        return "\"" + raw
+        return raw
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
-                .replace("\n", "\\n") + "\"";
+                .replace("\n", "\\n");
     }
 }

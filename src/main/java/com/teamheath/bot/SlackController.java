@@ -1,9 +1,12 @@
 package com.teamheath.bot;
 
 import com.teamhealth.grpc.ScoreServiceGrpc;
+import com.teamheath.bot.Commands.Organizers.CommandReconfigure;
+import com.teamheath.bot.Commands.Organizers.CommandTeamslist;
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
+import com.teamheath.bot.Commands.Users.Team.TeamService;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,6 +29,7 @@ public class SlackController {
     private final BeanFactory applicationContext;
     private final UserScoreService userScoreService;
     private UserService userService;
+    private TeamService teamService;
 
     @Autowired
     private final ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub;
@@ -46,12 +50,14 @@ public class SlackController {
                            BeanFactory applicationContext,
                            UserScoreService userScoreService,
                            UserScoreService userScoreService1,
-                           ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub) {
+                           ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub,
+                            TeamService teamService) {
         this.orgService = orgService1;
         this.applicationContext = applicationContext;
         this.userService = userService;
         this.userScoreService = userScoreService1;
         this.grpcStub = grpcStub;
+        this.teamService = teamService;
 
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandCheckin(userId,
@@ -73,6 +79,29 @@ public class SlackController {
                         userScoreService
                 ).run()
         );
+        commandMap.put("/reconfigure", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandReconfigure(
+                        userId,
+                        channelId,
+                        scoreText,
+                        responseURL,
+                        orgService,
+                        userService,
+                        userScoreService
+                ).run()
+        );
+        commandMap.put("/teamslist", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandTeamslist(
+                        userId,
+                        channelId,
+                        responseURL,
+                        orgService,
+                        userService,
+                        teamService // ✅ correct service
+                ).run()
+        );
+
+
     }
 
 
@@ -88,7 +117,6 @@ public class SlackController {
         System.out.println("user_id: "+ userId);
 
         CommandFactory task = commandMap.get(command);
-
 
         if (task != null) {
             executor.submit(task.create(userId, channelId, scoreText, response_url));
