@@ -44,4 +44,8 @@ public class UserService {
     public UserScoreDB saveScore(UserScoreDB score) {
         return userScoreRepository.save(score);
     }
+
+    public UserDB findBySlackId(String userId) {
+        return (UserDB) userRepository.findWithTeamBySlackUserId(userId).orElse(null);
+    }
 }
