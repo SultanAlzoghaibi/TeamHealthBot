@@ -78,5 +78,14 @@ public class UserDB {
         this.team = team;
 
     }
+
+    public boolean isEmpty() {
+        return slackUserId == null;
+    }
+
+
+    public UserDB get() {
+        return this;
+    }
 }
 
