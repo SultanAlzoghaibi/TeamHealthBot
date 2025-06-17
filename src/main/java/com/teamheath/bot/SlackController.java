@@ -1,6 +1,7 @@
 package com.teamheath.bot;
 
 import com.teamhealth.grpc.ScoreServiceGrpc;
+import com.teamheath.bot.Commands.Organizers.CommandOrghealth;
 import com.teamheath.bot.Commands.Organizers.CommandReconfigure;
 import com.teamheath.bot.Commands.Organizers.CommandTeamslist;
 import com.teamheath.bot.Commands.Users.CommandCheckin;
@@ -92,6 +93,16 @@ public class SlackController {
         );
         commandMap.put("/teamslist", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandTeamslist(
+                        userId,
+                        channelId,
+                        responseURL,
+                        orgService,
+                        userService,
+                        teamService // ✅ correct service
+                ).run()
+        );
+        commandMap.put("/orghealth", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandOrghealth(
                         userId,
                         channelId,
                         responseURL,

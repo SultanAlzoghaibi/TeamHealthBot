@@ -49,7 +49,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             UserDB user = new UserDB();
             user.setSlackUserId("U" + String.format("%08d", i));
             if (i == 1) user.setSlackUserId("U08PCRZSQLD");
-            user.setRole("USER");
+            user.setRole("ADMIN");
             user.setOrganization(org);
             user.setTeam(i <= 5 ? team1 : team2); // Assign team
             userService.saveUser(user);
