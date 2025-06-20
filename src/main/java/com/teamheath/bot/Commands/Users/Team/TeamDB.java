@@ -5,6 +5,7 @@ import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreDB;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import jakarta.persistence.OrderBy;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,8 +25,6 @@ public class TeamDB {
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserDB> users;
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<TeamScoreDB> teamScores;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
@@ -35,6 +34,9 @@ public class TeamDB {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @jakarta.persistence.OrderBy("recordedAt DESC")
+    private List<TeamScoreDB> teamScores;
 
 
     // Getters & Setters

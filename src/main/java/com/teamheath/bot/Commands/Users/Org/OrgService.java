@@ -1,6 +1,9 @@
 package com.teamheath.bot.Commands.Users.Org;
 
+import com.teamheath.bot.Commands.Users.Team.TeamDB;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,4 +35,7 @@ public class OrgService {
     public void deleteAll() {
         orgRepository.deleteAll();
     }
+
+
+
 }

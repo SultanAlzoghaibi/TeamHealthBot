@@ -1,5 +1,6 @@
 package com.teamheath.bot.Commands.Users.Org;
 
+import com.teamheath.bot.Commands.Users.Team.TeamDB;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,7 +31,19 @@ public class OrgDB {
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<UserDB> users;
 
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<TeamDB> teams;
+
     // Getters and Setters
+
+    public List<TeamDB> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(List<TeamDB> teams) {
+        this.teams = teams;
+    }
+
     public List<UserDB> getUsers() {
         return users;
     }

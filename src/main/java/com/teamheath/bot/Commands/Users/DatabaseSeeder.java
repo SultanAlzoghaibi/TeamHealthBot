@@ -4,9 +4,12 @@ import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.Team.TeamDB;
 import com.teamheath.bot.Commands.Users.Team.TeamService;
+import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreDB;
+import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
+import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +20,8 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Autowired private OrgService orgService;
     @Autowired private UserService userService;
     @Autowired private TeamService teamService;
-    @Autowired private UserService userScoreService;
+    @Autowired private UserScoreService userScoreService;
+    @Autowired private TeamScoreService teamScoreService;
 
     @Override
     public void run(String... args) {
@@ -63,6 +67,23 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
 
         }
+        // Add a team-level score for each team
+        // Add multiple team-level scores for each team
+        int[] scoresTeamA = {85, 83, 88, 84};
+        int[] scoresTeamB = {90, 87, 89, 91};
 
+        for (int score : scoresTeamA) {
+            TeamScoreDB teamScore = new TeamScoreDB();
+            teamScore.setTeam(team1);
+            teamScore.setScore(score);
+            teamScoreService.saveTeamScore(teamScore);
+        }
+
+        for (int score : scoresTeamB) {
+            TeamScoreDB teamScore = new TeamScoreDB();
+            teamScore.setTeam(team2);
+            teamScore.setScore(score);
+            teamScoreService.saveTeamScore(teamScore);
+        }
     }
 }
