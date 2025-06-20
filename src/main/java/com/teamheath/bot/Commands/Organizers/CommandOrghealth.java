@@ -1,11 +1,17 @@
 package com.teamheath.bot.Commands.Organizers;
 
 import com.teamheath.bot.Commands.Command;
+import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
+import com.teamheath.bot.Commands.Users.Team.TeamDB;
 import com.teamheath.bot.Commands.Users.Team.TeamService;
+import com.teamheath.bot.Commands.Users.Team.TeamWithCountDTO;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.teamheath.bot.tools.Response3SecMore.response3SecMore;
 
@@ -17,19 +23,22 @@ public class CommandOrghealth implements Command {
     private final OrgService orgService;
     private final UserService userService;
     private final TeamService teamService;
+    private final TeamScoreService teamScoreService;
 
     public CommandOrghealth(String userId,
                             String channelId,
                             String responseUrl,
                             OrgService orgService,
                             UserService userService,
-                            TeamService teamService) {
+                            TeamService teamService,
+                            TeamScoreService teamScoreService) {
         this.userId = userId;
         this.channelId = channelId;
         this.responseUrl = responseUrl;
         this.orgService = orgService;
         this.userService = userService;
         this.teamService = teamService;
+        this.teamScoreService = teamScoreService;
     }
 
     @Override
@@ -53,8 +62,62 @@ public class CommandOrghealth implements Command {
         }
         response3SecMore("Amdin pass selection", responseUrl);
 
-        // TODO: 1. Lookup org from userId
-        //       2. Aggregate team scores (avg, std dev, etc.)
-        //       3. Format and send Slack response
+        // 3. Lookup organization
+        OrgDB org = user.getOrganization();
+        if (org == null) {
+            response3SecMore("❌ You are not part of an organization.", responseUrl);
+            return;
+        }
+        List<TeamDB> teams = org.getTeams();
+        if (teams == null || teams.isEmpty()) {
+            response3SecMore("ℹ️ No teams found in your organization.", responseUrl);
+            return;
+        }
+        System.out.println("part 2 of org ");
+        //4.
+        StringBuilder sb = new StringBuilder("*📊 Organization Health Overview:*\n");
+// 4. Get all teams with their member counts once
+        List<TeamWithCountDTO> teamsWithCounts = teamService.getTeamsWithMemberCountByOrganization(org);
+        if (teamsWithCounts.isEmpty()) {
+            response3SecMore("ℹ️ No teams found in your organization.", responseUrl);
+            return;
+        }
+
+// 5. Loop over each team
+        for (TeamDB team : teams) {
+            String teamName = team.getName();
+
+            int memberCount = teamsWithCounts.stream()
+                    .filter(t -> t.getTeam().getId().equals(team.getId()))
+                    .map(TeamWithCountDTO::getMemberCount)
+                    .findFirst()
+                    .orElse(0);
+
+            List<Integer> lastScores;
+            try {
+                lastScores = teamScoreService.getLastNScoresForTeam(team, 4);
+            } catch (Exception e) {
+                System.out.println("⚠️ Failed to fetch scores for team " + teamName + ": " + e.getMessage());
+                continue;
+            }
+
+            sb.append("• *").append(teamName).append("* — ")
+                    .append(memberCount).append(" member").append(memberCount == 1 ? "" : "s").append("\n");
+
+            if (lastScores.isEmpty()) {
+                sb.append("   No scores yet.\n");
+            } else {
+                sb.append("   Scores: ");
+                for (int i = 0; i < lastScores.size(); i++) {
+                    sb.append(lastScores.get(i));
+                    if (i < lastScores.size() - 1) sb.append(", ");
+                }
+                sb.append("\n");
+            }
+        }
+
+        response3SecMore(sb.toString(), responseUrl);
+
+
     }
 }

@@ -1,7 +1,9 @@
 package com.teamheath.bot.Commands.Users.Team;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,4 +14,8 @@ public interface TeamRepository extends JpaRepository<TeamDB, UUID> {
     Optional<TeamDB> findByNameAndOrganizationId(String name, UUID organizationId);
 
     List<TeamDB> findByOrganization(OrgDB org);
+
+    // In TeamRepository.java
+    @Query("SELECT t FROM TeamDB t WHERE t.organization = :org")
+    List<TeamDB> findTeamsByOrganization(@Param("org") OrgDB org);
 }

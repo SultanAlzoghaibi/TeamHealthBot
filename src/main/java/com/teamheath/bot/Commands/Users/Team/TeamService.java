@@ -1,10 +1,13 @@
 package com.teamheath.bot.Commands.Users.Team;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
+import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreDB;
+import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreRepository;
 import com.teamheath.bot.Commands.Users.User.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +20,9 @@ public class TeamService {
 
     @Autowired
     private TeamRepository teamRepository;
+
+    @Autowired
+    private TeamScoreRepository teamScoreRepository;
 
     public TeamDB saveTeam(TeamDB team) {
         return teamRepository.save(team);
@@ -41,11 +47,14 @@ public class TeamService {
         for (TeamDB team : teams) {
 
             int count = userRepository.countByTeam(team);
-            result.add(new TeamWithCountDTO(team.getName(), count));
+            result.add(new TeamWithCountDTO(team.getName(), count, team));
         }
         return result;
     }
 
 
+    public TeamScoreDB saveTeamScore(TeamScoreDB score) {
+        return teamScoreRepository.save(score);
+    }
 }
 

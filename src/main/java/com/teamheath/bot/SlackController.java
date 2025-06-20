@@ -8,6 +8,7 @@ import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.Team.TeamService;
+import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import org.springframework.beans.factory.BeanFactory;
@@ -29,8 +30,13 @@ public class SlackController {
     private final OrgService orgService;
     private final BeanFactory applicationContext;
     private final UserScoreService userScoreService;
+
     private UserService userService;
+
+
     private TeamService teamService;
+    private final TeamScoreService teamScoreService;
+
 
     @Autowired
     private final ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub;
@@ -40,25 +46,29 @@ public class SlackController {
 
     @FunctionalInterface
     public interface CommandFactory {
-        Runnable create(String userId, String channelId, String scoreText, String responseURL);
-
-
+        Runnable create(String userId,
+                        String channelId,
+                        String scoreText,
+                        String responseURL);
     }
 
+    @Autowired
     public SlackController(OrgService orgService,
-                           OrgService orgService1,
                            UserService userService,
                            BeanFactory applicationContext,
                            UserScoreService userScoreService,
                            UserScoreService userScoreService1,
                            ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub,
-                            TeamService teamService) {
-        this.orgService = orgService1;
+                           TeamService teamService,
+                           TeamScoreService teamScoreService  ) {
+        this.orgService = orgService;
         this.applicationContext = applicationContext;
         this.userService = userService;
         this.userScoreService = userScoreService1;
         this.grpcStub = grpcStub;
         this.teamService = teamService;
+        this.teamScoreService = teamScoreService;
+
 
         commandMap.put("/checkin", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandCheckin(userId,
@@ -108,7 +118,8 @@ public class SlackController {
                         responseURL,
                         orgService,
                         userService,
-                        teamService // ✅ correct service
+                        teamService, // ✅ correct service
+                        teamScoreService
                 ).run()
         );
 
