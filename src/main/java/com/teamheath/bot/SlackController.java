@@ -4,6 +4,7 @@ import com.teamhealth.grpc.ScoreServiceGrpc;
 import com.teamheath.bot.Commands.Organizers.CommandOrghealth;
 import com.teamheath.bot.Commands.Organizers.CommandReconfigure;
 import com.teamheath.bot.Commands.Organizers.CommandTeamslist;
+import com.teamheath.bot.Commands.PMs.CommandMyteamsscores;
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
@@ -95,12 +96,16 @@ public class SlackController {
                         userId,
                         channelId,
                         scoreText,
+                        scoreText, // this is the missing newOrgName
                         responseURL,
                         orgService,
                         userService,
-                        userScoreService
+                        userScoreService,
+                        redisCacheService,
+                        teamService
                 ).run()
         );
+
         commandMap.put("/teamslist", (userId, channelId, scoreText, responseURL) ->
                 () -> new CommandTeamslist(
                         userId,
@@ -108,7 +113,8 @@ public class SlackController {
                         responseURL,
                         orgService,
                         userService,
-                        teamService // ✅ correct service
+                        teamService,
+                        redisCacheService// ✅ correct service
                 ).run()
         );
         commandMap.put("/orghealth", (userId, channelId, scoreText, responseURL) ->
@@ -119,9 +125,25 @@ public class SlackController {
                         orgService,
                         userService,
                         teamService, // ✅ correct service
-                        teamScoreService
+                        teamScoreService,
+                        redisCacheService
+
                 ).run()
         );
+        commandMap.put("/myteamsscores", (userId, channelId, scoreText, responseURL) ->
+                () -> new CommandMyteamsscores(
+                        userId,
+                        channelId,
+                        responseURL,
+                        orgService,
+                        userService,
+                        teamService, // ✅ correct service
+                        teamScoreService,
+                        redisCacheService
+
+                ).run()
+        );
+
 
 
     }

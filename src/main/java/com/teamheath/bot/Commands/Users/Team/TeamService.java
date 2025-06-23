@@ -53,8 +53,13 @@ public class TeamService {
     }
 
 
+
     public TeamScoreDB saveTeamScore(TeamScoreDB score) {
         return teamScoreRepository.save(score);
+    }
+
+    public Optional<TeamDB> findByNameAndOrganization(String teamName, OrgDB org) {
+        return teamRepository.findByNameAndOrganization(teamName, org);
     }
 }
 

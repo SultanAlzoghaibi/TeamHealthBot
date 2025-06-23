@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -77,4 +78,41 @@ public class RedisCacheService {
         String redisKey = "team_checkins:" + orgId + ":" + teamId;
         redisTemplate.delete(redisKey);
     }
+
+    public List<String> getLast4TeamScores(String key) {
+        return redisTemplate.opsForList().range(key, 0, 3);
+    }
+
+    public void cacheLast4TeamScores(String key, List<Integer> scores) {
+        List<String> scoreStrings = scores.stream().map(String::valueOf).toList();
+        redisTemplate.delete(key); // clean up previous
+        redisTemplate.opsForList().rightPushAll(key, scoreStrings);
+        redisTemplate.expire(key, Duration.ofHours(6)); // optional
+    }
+
+    // for priveldge checking
+    public void cacheUserRole(String userId, String role) {
+        redisTemplate.opsForValue().set("userRole:" + userId, role, Duration.ofDays(7));
+    }
+
+    public Optional<String> getUserRole(String userId) {
+        String role = redisTemplate.opsForValue().get("userRole:" + userId);
+        return Optional.ofNullable(role);
+    }
+
+    public boolean isPM(String userId) {
+        return getUserRole(userId)
+                .map(role -> role.equalsIgnoreCase("PM"))
+                .orElse(false);
+    }
+
+    public boolean isAdmin(String userId) {
+        return getUserRole(userId)
+                .map(role -> role.equalsIgnoreCase("ADMIN"))
+                .orElse(false);
+    }
+
+
+
+
 }

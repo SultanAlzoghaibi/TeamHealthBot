@@ -9,6 +9,7 @@ import com.teamheath.bot.Commands.Users.Team.TeamWithCountDTO;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
+import com.teamheath.bot.RedisCacheService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ public class CommandOrghealth implements Command {
     private final UserService userService;
     private final TeamService teamService;
     private final TeamScoreService teamScoreService;
+    private final RedisCacheService redisCacheService;
 
     public CommandOrghealth(String userId,
                             String channelId,
@@ -31,7 +33,7 @@ public class CommandOrghealth implements Command {
                             OrgService orgService,
                             UserService userService,
                             TeamService teamService,
-                            TeamScoreService teamScoreService) {
+                            TeamScoreService teamScoreService, RedisCacheService redisCacheService) {
         this.userId = userId;
         this.channelId = channelId;
         this.responseUrl = responseUrl;
@@ -39,6 +41,8 @@ public class CommandOrghealth implements Command {
         this.userService = userService;
         this.teamService = teamService;
         this.teamScoreService = teamScoreService;
+
+        this.redisCacheService = redisCacheService;
     }
 
     @Override
@@ -56,11 +60,11 @@ public class CommandOrghealth implements Command {
         UserDB user = userOpt.get();
 
         // 2. Check role
-        if (!user.getRole().equalsIgnoreCase("PM") && !user.getRole().equalsIgnoreCase("ADMIN")) {
-            response3SecMore("🚫 You must be a PM or Admin to view organization health.", responseUrl);
+        if (redisCacheService.isPM(userId)) {
+            response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
             return;
         }
-        response3SecMore("Amdin pass selection", responseUrl);
+        //response3SecMore("Amdin pass selection", responseUrl);
 
         // 3. Lookup organization
         OrgDB org = user.getOrganization();

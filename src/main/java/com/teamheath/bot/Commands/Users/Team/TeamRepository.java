@@ -18,4 +18,6 @@ public interface TeamRepository extends JpaRepository<TeamDB, UUID> {
     // In TeamRepository.java
     @Query("SELECT t FROM TeamDB t WHERE t.organization = :org")
     List<TeamDB> findTeamsByOrganization(@Param("org") OrgDB org);
+
+    Optional<TeamDB> findByNameAndOrganization(String teamName, OrgDB org);
 }
