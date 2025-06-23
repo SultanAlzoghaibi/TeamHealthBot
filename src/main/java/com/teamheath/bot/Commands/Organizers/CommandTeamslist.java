@@ -8,6 +8,7 @@ import com.teamheath.bot.Commands.Users.Team.TeamWithCountDTO;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
+import com.teamheath.bot.RedisCacheService;
 import com.teamheath.bot.tools.Response3SecMore;
 
 import java.util.List;
@@ -22,19 +23,21 @@ public class CommandTeamslist implements Command {
     private final OrgService orgService;
     private final UserService userService;
     private final TeamService teamService;
+    private final RedisCacheService  redisCacheService;
 
     public CommandTeamslist(String userId,
                             String channelId,
                             String responseUrl,
                             OrgService orgService,
                             UserService userService,
-                            TeamService teamService) {
+                            TeamService teamService, RedisCacheService redisCacheService) {
         this.userId = userId;
         this.channelId = channelId;
         this.responseUrl = responseUrl;
         this.orgService = orgService;
         this.userService = userService;
         this.teamService = teamService;
+        this.redisCacheService = redisCacheService;
     }
 
 
@@ -42,7 +45,14 @@ public class CommandTeamslist implements Command {
     public void run() {
         // 1. Lookup user and their organization
         System.out.println("CommandTeamslist Start");
+
+        if (!redisCacheService.isAdmin(userId)) {
+            response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
+            return;
+        }
+
         UserDB user = userService.findBySlackId(userId);
+
         if (user == null) {
             response3SecMore(responseUrl, "❌ Could not find user.");
             return;
