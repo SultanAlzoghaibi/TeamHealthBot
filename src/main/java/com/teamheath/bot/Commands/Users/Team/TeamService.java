@@ -61,5 +61,13 @@ public class TeamService {
     public Optional<TeamDB> findByNameAndOrganization(String teamName, OrgDB org) {
         return teamRepository.findByNameAndOrganization(teamName, org);
     }
+
+    public TeamDB createTeam(String teamName, OrgDB org) {
+        TeamDB team = new TeamDB();
+        team.setName(teamName);
+        team.setOrganization(org);
+        return teamRepository.save(team);
+
+    }
 }
 

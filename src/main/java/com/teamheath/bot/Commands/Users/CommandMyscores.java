@@ -8,6 +8,7 @@ import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import com.teamheath.bot.tools.Response3SecMore;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ public class CommandMyscores implements Command {
     private final OrgService orgService;
     private final UserService userService;
     private final UserScoreService userScoreService;
+
+
 
 
     public CommandMyscores(String userId,

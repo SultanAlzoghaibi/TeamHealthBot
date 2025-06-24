@@ -10,6 +10,8 @@ import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.RedisCacheService;
+import com.teamheath.bot.tools.RedisServices.RedisTeamScoreCache;
+import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,10 @@ public class CommandOrghealth implements Command {
     private final UserService userService;
     private final TeamService teamService;
     private final TeamScoreService teamScoreService;
-    private final RedisCacheService redisCacheService;
+    private final RedisTeamScoreCache redisTeamScoreCache;
+    private final RedisUserRoleCache redisUserRoleCache;
+
+
 
     public CommandOrghealth(String userId,
                             String channelId,
@@ -33,7 +38,9 @@ public class CommandOrghealth implements Command {
                             OrgService orgService,
                             UserService userService,
                             TeamService teamService,
-                            TeamScoreService teamScoreService, RedisCacheService redisCacheService) {
+                            TeamScoreService teamScoreService,
+                            RedisUserRoleCache redisUserRoleCache,
+                            RedisTeamScoreCache redisTeamScoreCache) {
         this.userId = userId;
         this.channelId = channelId;
         this.responseUrl = responseUrl;
@@ -41,8 +48,8 @@ public class CommandOrghealth implements Command {
         this.userService = userService;
         this.teamService = teamService;
         this.teamScoreService = teamScoreService;
-
-        this.redisCacheService = redisCacheService;
+        this.redisTeamScoreCache = redisTeamScoreCache;
+        this.redisUserRoleCache = redisUserRoleCache;
     }
 
     @Override
@@ -60,7 +67,7 @@ public class CommandOrghealth implements Command {
         UserDB user = userOpt.get();
 
         // 2. Check role
-        if (redisCacheService.isPM(userId)) {
+        if (!redisUserRoleCache.isAdmin(userId)) {
             response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
             return;
         }

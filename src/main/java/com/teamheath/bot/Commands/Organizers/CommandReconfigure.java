@@ -46,71 +46,133 @@ public class CommandReconfigure implements Command {
     @Override
     public void run() {
         redisCacheService.cacheUserRole("U08PCRZSQLD", "ADMIN");
-        System.out.println("Cached U08PCRZSQLD as ADMIN ✅");
 
-        if (redisCacheService.isPM(userId)) {
+
+        if (!redisCacheService.isAdmin(userId)) {
             response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
             return;
         }
-        response3SecMore("ur are a ADMIN", responseUrl);
 
 
-        String[] args =  scoreText.split(" ");
-
+        String[] args = scoreText.split(" ");
         if (args.length < 2) {
-            response3SecMore("⚠️ Usage: `@user PM` or `@user TEAM TeamName`", responseUrl);
+            response3SecMore("⚠️ Usage: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`", responseUrl);
             return;
         }
 
-// Remove @ if present
-        String targetUserSlackId = args[0].replaceAll("[<@>]", "").trim();
 
-// Look up the target user in DB
+        String targetUserSlackId = args[0].replaceAll("[<@>]", "").trim();
+        String action = args[1].toUpperCase();
+        System.out.println("targetuserID: " +targetUserSlackId);
+
+        if (!targetUserSlackId.startsWith("U")) {
+            response3SecMore("❗ Please use a proper Slack @mention (select user from dropdown).", responseUrl);
+            return;
+        }
+
+        switch (action) {
+            case "PM":
+            case "ADMIN":
+                changeUserRole(targetUserSlackId, action);
+                break;
+
+            case "TEAM":
+                if (args.length >= 3) {
+                    String teamName = scoreText.substring(scoreText.indexOf("TEAM") + 5).trim();
+                    changeTeam(targetUserSlackId, teamName);
+                } else {
+                    response3SecMore("⚠️ Missing team name for TEAM action.", responseUrl);
+                }
+                break;
+
+            case "NEWTEAM":
+                if (args.length >= 3) {
+                    String teamName = scoreText.substring(scoreText.indexOf("NEWTEAM") + 8).trim();
+                    createTeam(targetUserSlackId, teamName);
+                } else {
+                    response3SecMore("⚠️ Missing team name for NEWTEAM action.", responseUrl);
+                }
+                break;
+
+            default:
+                response3SecMore("⚠️ Invalid action. Use: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`", responseUrl);
+        }
+    }
+
+    public void changeUserRole(String targetUserSlackId, String role) {
         var targetUserOpt = userService.findBySlackUserId(targetUserSlackId);
         if (targetUserOpt.isEmpty()) {
             response3SecMore("❌ Could not find user: " + targetUserSlackId, responseUrl);
             return;
         }
+
         var targetUser = targetUserOpt.get();
-        String action = args[1].toUpperCase();
+        targetUser.setRole(role);
+        userService.saveUser(targetUser);
+        redisCacheService.cacheUserRole(targetUserSlackId, role);
 
-        if (action.equals("PM") || action.equals("ADMIN")) {
-            targetUser.setRole(action);
-            userService.saveUser(targetUser);
-            redisCacheService.cacheUserRole(targetUserSlackId, action);
-            response3SecMore("✅ Assigned role *" + action + "* to <@" + targetUserSlackId + ">", responseUrl);
-        } else if (action.equals("TEAM") && args.length >= 3) {
-            String teamName = scoreText.substring(scoreText.indexOf("TEAM") + 5); // preserve full team name
-            var org = targetUser.getOrganization();
-            if (org == null) {
-                response3SecMore("❌ Target user is not part of any organization.", responseUrl);
-                return;
-            }
+        response3SecMore("✅ Assigned role *" + role + "* to <@" + targetUserSlackId + ">", responseUrl);
+    }
 
 
-            var teamOpt = teamService.findByNameAndOrganization(teamName, org);
-            if (teamOpt.isEmpty()) {
-                response3SecMore("❌ No team named `" + teamName + "` found in your org.", responseUrl);
-                return;
-            }
-            targetUser.setTeam(teamOpt.get());
-            userService.saveUser(targetUser);
-            response3SecMore("✅ Moved <@" + targetUserSlackId + "> to team `" + teamName + "`", responseUrl);
-        } else {
-            response3SecMore("⚠️ Invalid action. Use: `@user PM`, `@user ADMIN`, or `@user TEAM TeamName`", responseUrl);
+
+    public void changeTeam(String targetUserSlackId, String teamName) {
+        var targetUserOpt = userService.findBySlackUserId(targetUserSlackId);
+        if (targetUserOpt.isEmpty()) {
+            response3SecMore("❌ Could not find user: " + targetUserSlackId, responseUrl);
+            return;
         }
 
+        var targetUser = targetUserOpt.get();
+        var org = targetUser.getOrganization();
+        if (org == null) {
+            response3SecMore("❌ Target user is not part of any organization.", responseUrl);
+            return;
+        }
 
-        //
-        //
-        //
-        //
+        var teamOpt = teamService.findByNameAndOrganization(teamName, org);
+        if (teamOpt.isEmpty()) {
+            response3SecMore("❌ No team named `" + teamName + "` found in your org.", responseUrl);
+            return;
+        }
 
+        targetUser.setTeam(teamOpt.get());
+        userService.saveUser(targetUser);
+        response3SecMore("✅ Moved <@" + targetUserSlackId + "> to team `" + teamName + "`", responseUrl);
+    }
 
+    public void createTeam(String targetUserSlackId, String teamName) {
+        var targetUserOpt = userService.findBySlackUserId(targetUserSlackId);
+        if (targetUserOpt.isEmpty()) {
+            response3SecMore("❌ Could not find user: " + targetUserSlackId, responseUrl);
+            return;
+        }
 
+        var targetUser = targetUserOpt.get();
+        var org = targetUser.getOrganization();
+        if (org == null) {
+            response3SecMore("❌ User is not assigned to any organization.", responseUrl);
+            return;
+        }
 
+        // Check if team already exists
+        var existingTeam = teamService.findByNameAndOrganization(teamName, org);
+        if (existingTeam.isPresent()) {
+            response3SecMore("⚠️ Team `" + teamName + "` already exists in your organization.", responseUrl);
+            return;
+        }
 
-        // TODO: Add logic to fetch org via user, rename org, and send Slack response
+        // Create team
+        var newTeam = teamService.createTeam(teamName, org);
+        if (newTeam == null) {
+            response3SecMore("❌ Failed to create team `" + teamName + "`.", responseUrl);
+            return;
+        }
 
+        // Optionally assign the user to the new team
+        targetUser.setTeam(newTeam);
+        userService.saveUser(targetUser);
+
+        response3SecMore("✅ Created new team `" + teamName + "` and assigned <@" + targetUserSlackId + "> to it.", responseUrl);
     }
 }

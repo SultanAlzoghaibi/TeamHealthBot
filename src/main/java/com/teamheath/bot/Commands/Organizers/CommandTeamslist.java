@@ -9,6 +9,7 @@ import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import com.teamheath.bot.RedisCacheService;
+import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
 import com.teamheath.bot.tools.Response3SecMore;
 
 import java.util.List;
@@ -23,21 +24,21 @@ public class CommandTeamslist implements Command {
     private final OrgService orgService;
     private final UserService userService;
     private final TeamService teamService;
-    private final RedisCacheService  redisCacheService;
+    private final RedisUserRoleCache redisUserRoleCache;
 
     public CommandTeamslist(String userId,
                             String channelId,
                             String responseUrl,
                             OrgService orgService,
                             UserService userService,
-                            TeamService teamService, RedisCacheService redisCacheService) {
+                            TeamService teamService,  RedisUserRoleCache redisUserRoleCache) {
         this.userId = userId;
         this.channelId = channelId;
         this.responseUrl = responseUrl;
         this.orgService = orgService;
         this.userService = userService;
         this.teamService = teamService;
-        this.redisCacheService = redisCacheService;
+        this.redisUserRoleCache = redisUserRoleCache;
     }
 
 
@@ -46,7 +47,7 @@ public class CommandTeamslist implements Command {
         // 1. Lookup user and their organization
         System.out.println("CommandTeamslist Start");
 
-        if (!redisCacheService.isAdmin(userId)) {
+        if (!redisUserRoleCache.isAdmin(userId)) {
             response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
             return;
         }
