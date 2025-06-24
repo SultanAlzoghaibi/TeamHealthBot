@@ -12,6 +12,10 @@ import com.teamheath.bot.Commands.Users.Team.TeamService;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
+import com.teamheath.bot.tools.RedisServices.RedisCheckinCache;
+import com.teamheath.bot.tools.RedisServices.RedisSlackNameCache;
+import com.teamheath.bot.tools.RedisServices.RedisTeamScoreCache;
+import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +35,7 @@ public class SlackController {
     private final OrgService orgService;
     private final BeanFactory applicationContext;
     private final UserScoreService userScoreService;
-
     private UserService userService;
-
-
     private TeamService teamService;
     private final TeamScoreService teamScoreService;
 
@@ -44,6 +45,13 @@ public class SlackController {
 
     @Autowired
     private RedisCacheService redisCacheService;
+
+    @Autowired private RedisUserRoleCache redisUserRoleCache;
+    @Autowired private RedisTeamScoreCache redisTeamScoreCache;
+    @Autowired private RedisCheckinCache redisCheckinCache;
+    @Autowired private RedisSlackNameCache redisSlackNameCache;
+
+
 
     @FunctionalInterface
     public interface CommandFactory {
@@ -61,7 +69,8 @@ public class SlackController {
                            UserScoreService userScoreService1,
                            ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub,
                            TeamService teamService,
-                           TeamScoreService teamScoreService  ) {
+                           TeamScoreService teamScoreService
+        ) {
         this.orgService = orgService;
         this.applicationContext = applicationContext;
         this.userService = userService;
@@ -114,7 +123,8 @@ public class SlackController {
                         orgService,
                         userService,
                         teamService,
-                        redisCacheService// ✅ correct service
+                        redisUserRoleCache
+
                 ).run()
         );
         commandMap.put("/orghealth", (userId, channelId, scoreText, responseURL) ->
@@ -126,7 +136,9 @@ public class SlackController {
                         userService,
                         teamService, // ✅ correct service
                         teamScoreService,
-                        redisCacheService
+                        redisUserRoleCache,
+                        redisTeamScoreCache
+
 
                 ).run()
         );
@@ -139,10 +151,12 @@ public class SlackController {
                         userService,
                         teamService, // ✅ correct service
                         teamScoreService,
-                        redisCacheService
+                        redisUserRoleCache,
+                        redisTeamScoreCache
 
                 ).run()
         );
+
 
 
 
@@ -159,6 +173,7 @@ public class SlackController {
 
     // Slack has a 3 sec timout rule
         System.out.println("user_id: "+ userId);
+        System.out.println("text: "+ scoreText);
 
         CommandFactory task = commandMap.get(command);
 

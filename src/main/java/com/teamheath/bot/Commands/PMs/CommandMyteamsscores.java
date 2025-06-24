@@ -7,6 +7,8 @@ import com.teamheath.bot.Commands.Users.Team.TeamService;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.RedisCacheService;
+import com.teamheath.bot.tools.RedisServices.RedisTeamScoreCache;
+import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
 
 import java.util.List;
 
@@ -22,7 +24,8 @@ public class CommandMyteamsscores implements Command {
     private final UserService userService;
     private final TeamService teamService;
     private final TeamScoreService teamScoreService;
-    private final RedisCacheService redisCacheService;
+    private final RedisUserRoleCache redisUserRoleCache;
+    private final RedisTeamScoreCache redisTeamScoreCache;
 
     public CommandMyteamsscores(
             String userId,
@@ -32,7 +35,9 @@ public class CommandMyteamsscores implements Command {
             UserService userService,
             TeamService teamService,
             TeamScoreService teamScoreService,
-            RedisCacheService redisCacheService) {
+            RedisUserRoleCache redisUserRoleCache,
+            RedisTeamScoreCache redisTeamScoreCache
+            ) {
         this.userId = userId;
         this.channelId = channelId;
         this.responseUrl = responseUrl;
@@ -40,7 +45,9 @@ public class CommandMyteamsscores implements Command {
         this.userService = userService;
         this.teamService = teamService;
         this.teamScoreService = teamScoreService;
-        this.redisCacheService = redisCacheService;
+        this.redisUserRoleCache = redisUserRoleCache;
+        this.redisTeamScoreCache = redisTeamScoreCache;
+
     }
 
     @Override
@@ -61,17 +68,18 @@ public class CommandMyteamsscores implements Command {
 
         if (user.getRole().equalsIgnoreCase("ADMIN")) {
             response3SecMore("You are an ADMIN, not a PM", responseUrl);
-            new CommandOrghealth(
-                    userId,
-                    channelId,
-                    responseUrl,
-                    orgService,
-                    userService,
-                    teamService, // ✅ correct service
-                    teamScoreService,
-                    redisCacheService
 
-            ).run();
+            new CommandOrghealth(
+                            userId,
+                            channelId,
+                            responseUrl,
+                            orgService,
+                            userService,
+                            teamService, // ✅ correct service
+                            teamScoreService,
+                            redisUserRoleCache,
+                            redisTeamScoreCache
+                    ).run();
             return;
         }
 
@@ -85,7 +93,7 @@ public class CommandMyteamsscores implements Command {
         }
 
         String teamKey = "team:" + team.getId() + ":last4";
-        List<String> cachedScores = redisCacheService.getLast4TeamScores(teamKey);
+        List<String> cachedScores = redisTeamScoreCache.getLast4TeamScores(teamKey);
 
         if (cachedScores == null || cachedScores.isEmpty()) {
             // fallback to PostgreSQL
@@ -97,7 +105,7 @@ public class CommandMyteamsscores implements Command {
             }
 
             // Save to Redis
-            redisCacheService.cacheLast4TeamScores(teamKey, scores);
+            redisTeamScoreCache.cacheLast4TeamScores(teamKey, scores);
             cachedScores = scores.stream().map(String::valueOf).toList();
         }
 

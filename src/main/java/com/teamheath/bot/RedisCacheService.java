@@ -18,6 +18,10 @@ public class RedisCacheService {
         this.redisTemplate = redisTemplate;
     }
 
+    // ============================
+    // 📊 SCORE TRACKING & CHECK-INS
+    // ============================
+
     public boolean hasCheckedIn(String orgId, String teamId, String userId) {
         String key = "org:" + orgId + ":team:" + teamId + ":scores";
         return Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(key, userId));
@@ -43,14 +47,13 @@ public class RedisCacheService {
     public Map<String, String> getTeamScores(String orgId, String teamId) {
         String key = "org:" + orgId + ":team:" + teamId + ":scores";
         Map<Object, Object> raw = redisTemplate.opsForHash().entries(key);
-
-        // Convert to <String, String>
         Map<String, String> result = new HashMap<>();
         for (Map.Entry<Object, Object> entry : raw.entrySet()) {
             result.put(entry.getKey().toString(), entry.getValue().toString());
         }
         return result;
     }
+
     public void addUserToTeamSet(String orgId, String teamId, String userId) {
         String redisKey = "team_checkins:" + orgId + ":" + teamId;
         redisTemplate.opsForSet().add(redisKey, userId);
@@ -69,7 +72,6 @@ public class RedisCacheService {
     public Long incrementCheckinCount(String orgId, String teamId) {
         String key = String.format("checkins:%s:%s", orgId, teamId);
         Long count = redisTemplate.opsForValue().increment(key);
-        // Optional TTL
         redisTemplate.expire(key, Duration.ofMinutes(1));
         return count;
     }
@@ -85,12 +87,15 @@ public class RedisCacheService {
 
     public void cacheLast4TeamScores(String key, List<Integer> scores) {
         List<String> scoreStrings = scores.stream().map(String::valueOf).toList();
-        redisTemplate.delete(key); // clean up previous
+        redisTemplate.delete(key);
         redisTemplate.opsForList().rightPushAll(key, scoreStrings);
-        redisTemplate.expire(key, Duration.ofHours(6)); // optional
+        redisTemplate.expire(key, Duration.ofHours(6));
     }
 
-    // for priveldge checking
+    // ============================
+    // 🛡️ USER ROLE PERMISSIONS
+    // ============================
+
     public void cacheUserRole(String userId, String role) {
         redisTemplate.opsForValue().set("userRole:" + userId, role, Duration.ofDays(7));
     }
@@ -112,7 +117,17 @@ public class RedisCacheService {
                 .orElse(false);
     }
 
+    // ============================
+    // 👤 SLACK USERNAME MAPPING
+    // ============================
 
+    public void cacheSlackNameToId(String slackDisplayName, String slackUserId) {
+        redisTemplate.opsForValue().set("slackNameToId:" + slackDisplayName.toLowerCase(), slackUserId, Duration.ofHours(1));
+    }
 
+    public Optional<String> getUserIdFromSlackName(String slackDisplayName) {
+        return Optional.ofNullable(redisTemplate.opsForValue().get("slackNameToId:" + slackDisplayName.toLowerCase()));
+    }
 
 }
+
