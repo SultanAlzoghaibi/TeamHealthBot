@@ -42,4 +42,5 @@ public class RedisUserRoleCache {
     public void removeUserRole(String userId) {
         redisTemplate.delete(userId); // or redisTemplate.delete("role:" + userId); if you're using a key prefix
     }
+
 }
