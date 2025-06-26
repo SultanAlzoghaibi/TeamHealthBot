@@ -10,6 +10,7 @@ import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import com.teamheath.bot.tools.DBDebugger;
 import com.teamheath.bot.tools.RedisServices.RedisSlackNameCache;
+import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
 
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ public class CommandRegister implements Command {
     private final OrgService orgService;
     private final UserService userService;
     private final RedisSlackNameCache redisSlackNameCache;
+    private final RedisUserRoleCache redisUserRoleCache;
 
     public CommandRegister(String userId,
                            String channelId,
@@ -32,7 +34,9 @@ public class CommandRegister implements Command {
                            String responseUrl,
                            OrgService orgService,
                            UserService userService,
-                           RedisSlackNameCache redisSlackNameCache) {
+                           RedisSlackNameCache redisSlackNameCache,
+                           RedisUserRoleCache redisUserRoleCache
+                           ) {
         this.userId = userId;
         this.channelId = channelId;
         this.scoreText = scoreText;
@@ -40,21 +44,23 @@ public class CommandRegister implements Command {
         this.orgService = orgService;
         this.userService = userService;
         this.redisSlackNameCache = redisSlackNameCache;
+        this.redisUserRoleCache = redisUserRoleCache;
+
     }
 
     @Override
     public void run() {
         String[] parts = scoreText.trim().split("\\s+");
-        printAllOrgsWithUsers(orgService);
+        printAllOrgsWithUsers(orgService); // Optional: debug tool
 
-        if (parts.length <= 2) {
+        if (parts.length != 3) {
             response3SecMore("❗ Usage: `/register join OrgName password123` or `/register quit OrgName password123`", responseUrl);
             return;
         }
-        String action = parts[0];
+
+        String action = parts[0].toLowerCase();
         String orgName = parts[1];
         String password = parts[2];
-
 
         Optional<OrgDB> orgOpt = orgService.findByName(orgName);
         if (orgOpt.isEmpty()) {
@@ -69,25 +75,29 @@ public class CommandRegister implements Command {
             return;
         }
 
-
         switch (action) {
             case "join":
-                userService.createUser(userId, org, "USER"); // handles user creation or upsert
+                Optional<UserDB> existing = userService.findBySlackUserIdAndOrganization(userId, org);
+
+                if (existing.isPresent()) {
+                    response3SecMore("📎 You’re already registered in org *" + org.getName() + "*.", responseUrl);
+                    return;
+                }
+                userService.createUser(userId, org, "USER"); // Creates user with USER role
                 response3SecMore("✅ You’ve been registered to org *" + orgName + "*.", responseUrl);
                 break;
 
             case "quit":
-                userService.removeUserFromOrg(userId, org); // you'll implement this in UserService
+                userService.removeUserFromOrg(userId, org);
+                redisUserRoleCache.cacheUserRole(userId, null); // also clear their role from Redis
                 response3SecMore("👋 You’ve left org *" + orgName + "*.", responseUrl);
                 break;
 
             default:
-                response3SecMore("⚠️ Invalid action. Use `/register join OrgName password` or `/register quit OrgName password`.", responseUrl);
+                response3SecMore("⚠️ Invalid action. Use `/register join OrgName password123` or `/register quit OrgName password123`.", responseUrl);
         }
-        printAllOrgsWithUsers(orgService);
 
-
-
+        printAllOrgsWithUsers(orgService); // Optional: debug tool
     }
 
 }

@@ -167,7 +167,8 @@ public class SlackController {
                         responseUrl,
                         orgService,
                         userService,
-                        redisSlackNameCache
+                        redisSlackNameCache,
+                        redisUserRoleCache
                 ).run()
         );
 
