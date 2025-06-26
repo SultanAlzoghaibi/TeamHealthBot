@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<UserDB, UUID> {
     Optional<Object> findWithTeamBySlackUserId(String userId);
 
     int countByTeam(TeamDB team);
+
+    Optional<UserDB> findBySlackUserIdAndOrganization(String userId, OrgDB org);
 }

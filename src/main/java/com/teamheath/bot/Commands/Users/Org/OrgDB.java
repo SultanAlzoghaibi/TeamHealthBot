@@ -24,6 +24,9 @@ public class OrgDB {
     @Column(name = "slack_team_id", unique = true, nullable = false)
     private String slackTeamId;
 
+    @Column(name = "hashed_password", nullable = false)
+    private String hashedPassword; // 🔐 secure storage
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -83,7 +86,15 @@ public class OrgDB {
         this.createdAt = createdAt;
     }
 
-    public OrgDB orElse(Object o) {
-        return (OrgDB) o;
+    public String getHashedPassword() {
+        return hashedPassword;
+    }
+
+    public void setHashedPassword(String hashedPassword) {
+        this.hashedPassword = hashedPassword;
+    }
+
+    public Object getPassword() {
+        return hashedPassword;
     }
 }

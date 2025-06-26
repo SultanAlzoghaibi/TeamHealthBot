@@ -47,19 +47,16 @@ public class CommandReconfigure implements Command {
     public void run() {
         redisCacheService.cacheUserRole("U08PCRZSQLD", "ADMIN");
 
-
         if (!redisCacheService.isAdmin(userId)) {
             response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
             return;
         }
-
 
         String[] args = scoreText.split(" ");
         if (args.length < 2) {
             response3SecMore("⚠️ Usage: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`", responseUrl);
             return;
         }
-
 
         String targetUserSlackId = args[0].replaceAll("[<@>]", "").trim();
         String action = args[1].toUpperCase();
