@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static com.teamheath.bot.tools.Response3SecMore.response3SecMore;
+
 @Service
 public class UserService {
 
@@ -50,6 +52,7 @@ public class UserService {
     }
 
     public void createUser(String userId, OrgDB newOrg, String role) {
+
         UserDB newUser = new UserDB();
         newUser.setSlackUserId(userId);
         newUser.setOrganization(newOrg);
@@ -57,19 +60,28 @@ public class UserService {
         userRepository.save(newUser);
     }
 
+    @Transactional
     public void removeUserFromOrg(String userId, OrgDB org) {
-        Optional<UserDB> userOpt = userRepository.findBySlackUserIdAndOrganization(userId, org);
+        try {Optional<UserDB> userOpt = userRepository.findBySlackUserIdAndOrgId(userId, org.getId());
 
-        if (userOpt.isEmpty()) {
-            return; // nothing to remove
+            if (userOpt.isEmpty()) {
+                System.out.println("❗ User not found for given org and ID");
+                return;
+            }
+            UserDB user = userOpt.get();
+            // Either delete or disassociate
+            user.setOrganization(null);
+            user.setRole(null);
+            userRepository.save(user); // or userRepository.delete(user);
+            System.out.println("✅ Removed user " + userId + " from org " + org.getName());
+
+        } catch (Exception e) {
+            System.out.println("❗ Error while removing user: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
 
-        UserDB user = userOpt.get();
-
-        // Remove the org association
-        user.setOrganization(null);
-        user.setRole(null); // optional: clear their role
-
-        userRepository.save(user);
+    public Optional<UserDB> findBySlackUserIdAndOrganization(String userId, OrgDB org) {
+        return userRepository.findBySlackUserIdAndOrganization(userId, org);
     }
 }
