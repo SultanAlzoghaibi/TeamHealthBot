@@ -48,4 +48,28 @@ public class UserService {
     public UserDB findBySlackId(String userId) {
         return (UserDB) userRepository.findWithTeamBySlackUserId(userId).orElse(null);
     }
+
+    public void createUser(String userId, OrgDB newOrg) {
+        UserDB newUser = new UserDB();
+        newUser.setSlackUserId(userId);
+        newUser.setOrganization(newOrg);
+        newUser.setRole("ADMIN"); // 👑 Set admin role
+        userRepository.save(newUser);
+    }
+
+    public void removeUserFromOrg(String userId, OrgDB org) {
+        Optional<UserDB> userOpt = userRepository.findBySlackUserIdAndOrganization(userId, org);
+
+        if (userOpt.isEmpty()) {
+            return; // nothing to remove
+        }
+
+        UserDB user = userOpt.get();
+
+        // Remove the org association
+        user.setOrganization(null);
+        user.setRole(null); // optional: clear their role
+
+        userRepository.save(user);
+    }
 }

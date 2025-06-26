@@ -1,12 +1,10 @@
 package com.teamheath.bot.Commands.Users.Org;
 
-import com.teamheath.bot.Commands.Users.Team.TeamDB;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrgService {
@@ -32,10 +30,35 @@ public class OrgService {
         return orgRepository.findBySlackTeamId(t123456);
     }
 
+    public Optional<OrgDB> findByName(String name) {
+        return orgRepository.findByName(name);
+    }
+
     public void deleteAll() {
         orgRepository.deleteAll();
     }
 
 
+    public OrgDB createOrg(String orgName, String rawPassword, String slackTeamId) {
+        OrgDB org = new OrgDB();
+        org.setName(orgName);
+        org.setSlackTeamId(slackTeamId);
 
+        // TEMPORARY: just to unblock you for now
+        org.setHashedPassword(rawPassword);
+
+        // Later: use proper hashing
+        // org.setHashedPassword(passwordEncoder.encode(rawPassword));
+
+        return orgRepository.save(org);
+    }
+
+
+    public void deleteOrg(OrgDB org) {
+        orgRepository.delete(org);
+    }
+
+    public List<OrgDB> findAll() {
+        return orgRepository.findAll();
+    }
 }

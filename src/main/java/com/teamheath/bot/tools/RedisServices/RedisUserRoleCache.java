@@ -39,4 +39,7 @@ public class RedisUserRoleCache {
                 .map(role -> role.equalsIgnoreCase("ADMIN"))
                 .orElse(false);
     }
+    public void removeUserRole(String userId) {
+        redisTemplate.delete(userId); // or redisTemplate.delete("role:" + userId); if you're using a key prefix
+    }
 }

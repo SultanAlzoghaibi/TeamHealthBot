@@ -7,6 +7,8 @@ import com.teamheath.bot.Commands.Organizers.CommandTeamslist;
 import com.teamheath.bot.Commands.PMs.CommandMyteamsscores;
 import com.teamheath.bot.Commands.Users.CommandCheckin;
 import com.teamheath.bot.Commands.Users.CommandMyscores;
+import com.teamheath.bot.Commands.Users.CommandNeworg;
+import com.teamheath.bot.Commands.Users.CommandRegister;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
 import com.teamheath.bot.Commands.Users.Team.TeamService;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreService;
@@ -156,6 +158,31 @@ public class SlackController {
 
                 ).run()
         );
+
+        commandMap.put("/register", (userId, channelId, scoreText, responseUrl) ->
+                () -> new CommandRegister(
+                        userId,
+                        channelId,
+                        scoreText,
+                        responseUrl,
+                        orgService,
+                        userService,
+                        redisSlackNameCache
+                ).run()
+        );
+
+        commandMap.put("/neworg", (userId, channelId, scoreText, responseUrl) ->
+                () -> new CommandNeworg(
+                        userId,
+                        channelId,
+                        scoreText,
+                        responseUrl,
+                        orgService,
+                        userService,
+                        redisUserRoleCache
+                ).run()
+        );
+
 
 
 
