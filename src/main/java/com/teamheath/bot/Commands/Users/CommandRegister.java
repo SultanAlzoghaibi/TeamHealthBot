@@ -8,10 +8,12 @@ import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreDB;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
+import com.teamheath.bot.tools.DBDebugger;
 import com.teamheath.bot.tools.RedisServices.RedisSlackNameCache;
 
 import java.util.Optional;
 
+import static com.teamheath.bot.tools.DBDebugger.printAllOrgsWithUsers;
 import static com.teamheath.bot.tools.Response3SecMore.response3SecMore;
 
 public class CommandRegister implements Command {
@@ -43,15 +45,18 @@ public class CommandRegister implements Command {
     @Override
     public void run() {
         String[] parts = scoreText.trim().split("\\s+");
-        if (parts.length < 2) {
+        printAllOrgsWithUsers(orgService);
+
+        if (parts.length <= 2) {
             response3SecMore("❗ Usage: `/register join OrgName password123` or `/register quit OrgName password123`", responseUrl);
             return;
         }
-        String action = parts[0].toLowerCase();
+        String action = parts[0];
         String orgName = parts[1];
-        String password = parts.length >= 3 ? parts[2] : "";
+        String password = parts[2];
 
-        Optional<OrgDB> orgOpt = orgService.findByName(userId);
+
+        Optional<OrgDB> orgOpt = orgService.findByName(orgName);
         if (orgOpt.isEmpty()) {
             response3SecMore("🚫 Organization `" + orgName + "` not found.", responseUrl);
             return;
@@ -64,9 +69,10 @@ public class CommandRegister implements Command {
             return;
         }
 
+
         switch (action) {
             case "join":
-                userService.createUser(userId, org); // handles user creation or upsert
+                userService.createUser(userId, org, "USER"); // handles user creation or upsert
                 response3SecMore("✅ You’ve been registered to org *" + orgName + "*.", responseUrl);
                 break;
 
@@ -78,6 +84,7 @@ public class CommandRegister implements Command {
             default:
                 response3SecMore("⚠️ Invalid action. Use `/register join OrgName password` or `/register quit OrgName password`.", responseUrl);
         }
+        printAllOrgsWithUsers(orgService);
 
 
 

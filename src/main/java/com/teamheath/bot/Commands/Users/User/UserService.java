@@ -49,11 +49,11 @@ public class UserService {
         return (UserDB) userRepository.findWithTeamBySlackUserId(userId).orElse(null);
     }
 
-    public void createUser(String userId, OrgDB newOrg) {
+    public void createUser(String userId, OrgDB newOrg, String role) {
         UserDB newUser = new UserDB();
         newUser.setSlackUserId(userId);
         newUser.setOrganization(newOrg);
-        newUser.setRole("ADMIN"); // 👑 Set admin role
+        newUser.setRole(role); // 👑 Set admin role
         userRepository.save(newUser);
     }
 

@@ -86,7 +86,7 @@ public class CommandNeworg implements Command {
 
                 // Uncache all user roles
                 org.getUsers().forEach(user -> {
-                    redisUserRoleCache.removeUserRole(user.getSlackUserId()); // ✅ good
+                    redisUserRoleCache.cacheUserRole(user.getSlackUserId(), null);
                 });
 
                 orgService.deleteOrg(org);
@@ -102,7 +102,7 @@ public class CommandNeworg implements Command {
 
             try {
                 OrgDB newOrg = orgService.createOrg(orgName, password, slackTeamId);
-                userService.createUser(userId, newOrg);
+                userService.createUser(userId, newOrg, "ADMIN");
                 redisUserRoleCache.cacheUserRole(userId, "ADMIN");
                 redisUserRoleCache.cacheUserRole(userId, "ADMIN");
                 response3SecMore("✅ Created new organization *" + orgName + "*.\nYou are now the admin.", responseUrl);
