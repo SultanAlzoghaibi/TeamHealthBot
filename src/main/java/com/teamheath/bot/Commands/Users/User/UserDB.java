@@ -72,6 +72,10 @@ public class UserDB {
         return (UserDB) o;
     }
 
+    public String getOrgSlackId() {
+        return organization != null ? organization.getId().toString() : null;
+    }
+
 
     public TeamDB getTeam() { return team;};
     public void setTeam(TeamDB team) {

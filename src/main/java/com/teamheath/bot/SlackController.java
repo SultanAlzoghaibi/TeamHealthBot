@@ -111,9 +111,12 @@ public class SlackController {
                         responseURL,
                         orgService,
                         userService,
+                        teamService,
                         userScoreService,
-                        redisCacheService,
-                        teamService
+                        redisUserRoleCache,
+                        redisTeamScoreCache,
+                        redisSlackNameCache
+
                 ).run()
         );
 

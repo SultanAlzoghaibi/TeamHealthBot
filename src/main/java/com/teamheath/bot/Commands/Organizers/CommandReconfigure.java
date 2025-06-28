@@ -6,6 +6,15 @@ import com.teamheath.bot.Commands.Users.Team.TeamService;
 import com.teamheath.bot.Commands.Users.User.UserService;
 import com.teamheath.bot.Commands.Users.UserScore.UserScoreService;
 import com.teamheath.bot.RedisCacheService;
+import com.teamheath.bot.tools.CacheDebugger;
+import com.teamheath.bot.tools.DBDebugger;
+import com.teamheath.bot.tools.RedisServices.RedisSlackNameCache;
+import com.teamheath.bot.tools.RedisServices.RedisTeamScoreCache;
+import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.Optional;
 
 import static com.teamheath.bot.tools.Response3SecMore.response3SecMore;
 
@@ -18,9 +27,11 @@ public class CommandReconfigure implements Command {
     private final String responseUrl;
     private final OrgService orgService;
     private final UserService userService;
-    private final UserScoreService userScoreService;
-    private final RedisCacheService redisCacheService;
     private final TeamService teamService;
+    private final UserScoreService userScoreService;
+    private final RedisUserRoleCache redisUserRoleCache;
+    private final RedisTeamScoreCache redisTeamScoreCache;
+    private final RedisSlackNameCache redisSlackNameCache;
 
 
     public CommandReconfigure(String userId,
@@ -30,7 +41,12 @@ public class CommandReconfigure implements Command {
                               String responseUrl,
                               OrgService orgService,
                               UserService userService,
-                              UserScoreService userScoreService, RedisCacheService redisCacheService, TeamService teamService) {
+                              TeamService teamService,
+                              UserScoreService userScoreService,
+                              RedisUserRoleCache redisUserRoleCache,
+                              RedisTeamScoreCache redisTeamScoreCache,
+                              RedisSlackNameCache redisSlackNameCache
+                              ) {
         this.userId = userId;
         this.channelId = channelId;
         this.scoreText = scoreText;
@@ -39,61 +55,140 @@ public class CommandReconfigure implements Command {
         this.orgService = orgService;
         this.userService = userService;
         this.userScoreService = userScoreService;
-        this.redisCacheService = redisCacheService;
+        this.redisUserRoleCache = redisUserRoleCache;
+        this.redisTeamScoreCache = redisTeamScoreCache;
+        this.redisSlackNameCache = redisSlackNameCache;
         this.teamService = teamService;
     }
 
+    // @user PM             → Assigns PM role to user
+    // @user ADMIN          → Assigns ADMIN role to user
+    // @user TEAM TeamName  → Moves user to existing team
+    // @user NEWTEAM TeamName → Creates new team and assigns user to it
     @Override
     public void run() {
-        redisCacheService.cacheUserRole("U08PCRZSQLD", "ADMIN");
 
-        if (!redisCacheService.isAdmin(userId)) {
-            response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
+        redisSlackNameCache.cacheSlackNameToId(
+                "338a0026-26b4-4df1-80ca-2db0efa05c04",
+                "ssultan2800",
+                "U08RNSS83V4" ) ;
+        CacheDebugger.printAllRedisCache();
+
+
+
+        try {
+            if (!redisUserRoleCache.isAdmin(userId)) {
+                response3SecMore("🚫 Only ADMINs can reconfigure users.", responseUrl);
+                return;
+            }
+
+            String[] args = scoreText.split(" ");
+            if (args.length < 2) {
+                response3SecMore("⚠️ Usage: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, `@user NEWTEAM TeamName`, or `@user DELTEAM TeamName`", responseUrl);
+                return;
+            }
+
+            String displayName = args[0].replaceAll("[<@>]", "").trim();
+            String action = args[1].toUpperCase();
+
+            // Get orgId of the requesting admin
+            var requestingUserOpt = userService.findBySlackUserId(userId);
+            if (requestingUserOpt.isEmpty()) {
+                response3SecMore("❌ Cannot resolve your organization.", responseUrl);
+                return;
+            }
+            String orgId = requestingUserOpt.get().getOrgSlackId();
+
+
+
+            // Look up actual Slack ID from display name
+            Optional<String> targetSlackIdOpt = redisSlackNameCache.getUserIdFromSlackName(orgId, displayName);
+            if (targetSlackIdOpt.isEmpty()) {
+                response3SecMore("❌ Could not find Slack user for display name: " + displayName, responseUrl);
+                return;
+            }
+            String targetUserSlackId = targetSlackIdOpt.get();
+            System.out.println("Resolved user ID: " + targetUserSlackId);
+            ;
+
+
+            if (!targetUserSlackId.startsWith("U")) {
+                response3SecMore("❗ Please use a proper Slack @mention (select user from dropdown).", responseUrl);
+                return;
+            }
+
+            switch (action) {
+                case "PM", "ADMIN", "USER":
+                    changeUserRole(targetUserSlackId, action);
+                    break;
+
+                case "TEAM":
+                    if (args.length >= 3) {
+                        String teamName = scoreText.substring(scoreText.indexOf("TEAM") + 5).trim();
+                        changeTeam(targetUserSlackId, teamName);
+                    } else {
+                        response3SecMore("⚠️ Missing team name for TEAM action.", responseUrl);
+                    }
+                    break;
+
+                case "NEWTEAM":
+                    if (args.length >= 3) {
+                        String teamName = scoreText.substring(scoreText.indexOf("NEWTEAM") + 8).trim();
+                        createTeam(targetUserSlackId, teamName);
+                    } else {
+                        response3SecMore("⚠️ Missing team name for NEWTEAM action.", responseUrl);
+                    }
+                    break;
+
+                case "DELTEAM":
+                    if (args.length >= 3) {
+                        String teamName = scoreText.substring(scoreText.indexOf("DELTEAM") + 8).trim();
+                        deleteTeam(teamName);
+                    } else {
+                        response3SecMore("⚠️ Missing team name for DELTEAM action.", responseUrl);
+                    }
+                    break;
+
+
+                default:
+                    response3SecMore("⚠️ Invalid action. Use: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`", responseUrl);
+            }
+        } catch (Exception e) {
+            DBDebugger.printAllOrgsWithUsers(orgService);
+            DBDebugger.printAllTeams(teamService);
+            response3SecMore("⚠\uFE0F Usage: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`\", responseUrl", responseUrl);
+
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        DBDebugger.printAllOrgsWithUsers(orgService);
+        DBDebugger.printAllTeams(teamService);
+
+    }
+
+    public void deleteTeam(String teamName) {
+        var orgOpt = userService.findBySlackUserId(userId);
+        if (orgOpt.isEmpty()) {
+            response3SecMore("❌ Could not identify your org.", responseUrl);
             return;
         }
 
-        String[] args = scoreText.split(" ");
-        if (args.length < 2) {
-            response3SecMore("⚠️ Usage: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`", responseUrl);
+        var org = orgOpt.get().getOrganization();
+        if (org == null) {
+            response3SecMore("❌ You're not part of any organization.", responseUrl);
             return;
         }
 
-        String targetUserSlackId = args[0].replaceAll("[<@>]", "").trim();
-        String action = args[1].toUpperCase();
-        System.out.println("targetuserID: " +targetUserSlackId);
-
-        if (!targetUserSlackId.startsWith("U")) {
-            response3SecMore("❗ Please use a proper Slack @mention (select user from dropdown).", responseUrl);
+        var teamOpt = teamService.findByNameAndOrganization(teamName, org);
+        if (teamOpt.isEmpty()) {
+            response3SecMore("❌ Team `" + teamName + "` not found in your organization.", responseUrl);
             return;
         }
 
-        switch (action) {
-            case "PM":
-            case "ADMIN":
-                changeUserRole(targetUserSlackId, action);
-                break;
-
-            case "TEAM":
-                if (args.length >= 3) {
-                    String teamName = scoreText.substring(scoreText.indexOf("TEAM") + 5).trim();
-                    changeTeam(targetUserSlackId, teamName);
-                } else {
-                    response3SecMore("⚠️ Missing team name for TEAM action.", responseUrl);
-                }
-                break;
-
-            case "NEWTEAM":
-                if (args.length >= 3) {
-                    String teamName = scoreText.substring(scoreText.indexOf("NEWTEAM") + 8).trim();
-                    createTeam(targetUserSlackId, teamName);
-                } else {
-                    response3SecMore("⚠️ Missing team name for NEWTEAM action.", responseUrl);
-                }
-                break;
-
-            default:
-                response3SecMore("⚠️ Invalid action. Use: `@user PM`, `@user ADMIN`, `@user TEAM TeamName`, or `@user NEWTEAM TeamName`", responseUrl);
-        }
+        var team = teamOpt.get();
+        teamService.deleteTeam(team); // or deleteById if needed
+        response3SecMore("🗑️ Deleted team `" + teamName + "` from your org.", responseUrl);
     }
 
     public void changeUserRole(String targetUserSlackId, String role) {
@@ -106,7 +201,7 @@ public class CommandReconfigure implements Command {
         var targetUser = targetUserOpt.get();
         targetUser.setRole(role);
         userService.saveUser(targetUser);
-        redisCacheService.cacheUserRole(targetUserSlackId, role);
+        redisUserRoleCache.cacheUserRole(targetUserSlackId, role);
 
         response3SecMore("✅ Assigned role *" + role + "* to <@" + targetUserSlackId + ">", responseUrl);
     }
