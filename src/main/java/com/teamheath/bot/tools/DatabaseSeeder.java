@@ -1,4 +1,4 @@
-package com.teamheath.bot.Commands.Users;
+package com.teamheath.bot.tools;
 
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import com.teamheath.bot.Commands.Users.Org.OrgService;
@@ -52,7 +52,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         for (int i = 1; i <= 10; i++) {
             UserDB user = new UserDB();
             user.setSlackUserId("U" + String.format("%08d", i));
-            if (i == 1) user.setSlackUserId("U08PCRZSQLD");
+            if (i == 1) user.setSlackUserId("P08PCRZSQLD");
             user.setRole("ADMIN");
             user.setOrganization(org);
             user.setTeam(i <= 5 ? team1 : team2); // Assign team

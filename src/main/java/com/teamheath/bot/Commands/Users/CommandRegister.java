@@ -79,10 +79,17 @@ public class CommandRegister implements Command {
             case "join":
                 Optional<UserDB> existing = userService.findBySlackUserIdAndOrganization(userId, org);
 
+                Optional<UserDB> existingOrg = Optional.ofNullable(userService.findBySlackUserId(userId)); // FIXED LINE
+                if (existingOrg.isPresent() && existingOrg.get().getOrganization() != null) {
+                    response3SecMore("🚫 You're already part of an org. Leave your current org before joining a new one.", responseUrl);
+                    return;
+                }
+
                 if (existing.isPresent()) {
                     response3SecMore("📎 You’re already registered in org *" + org.getName() + "*.", responseUrl);
                     return;
                 }
+
                 userService.createUser(userId, org, "USER"); // Creates user with USER role
                 response3SecMore("✅ You’ve been registered to org *" + orgName + "*.", responseUrl);
                 break;

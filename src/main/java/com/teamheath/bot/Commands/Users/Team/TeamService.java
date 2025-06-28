@@ -3,7 +3,9 @@ package com.teamheath.bot.Commands.Users.Team;
 import com.teamheath.bot.Commands.Users.Org.OrgDB;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreDB;
 import com.teamheath.bot.Commands.Users.TeamScore.TeamScoreRepository;
+import com.teamheath.bot.Commands.Users.User.UserDB;
 import com.teamheath.bot.Commands.Users.User.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +70,22 @@ public class TeamService {
         team.setOrganization(org);
         return teamRepository.save(team);
 
+    }
+
+    public List<TeamDB> findAllTeams() {
+        return teamRepository.findAll();
+    }
+
+    @Transactional
+    public void deleteTeam(TeamDB team) {
+        // Optional: remove users from this team first if needed
+        List<UserDB> users = userRepository.findByTeam(team);
+        for (UserDB user : users) {
+            user.setTeam(null);
+        }
+        userRepository.saveAll(users);
+
+        teamRepository.delete(team);
     }
 }
 
