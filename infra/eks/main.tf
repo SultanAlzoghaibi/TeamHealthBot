@@ -5,49 +5,83 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  required_version = ">= 1.5.0"
 }
 
-provider "aws" {
-  region  = "us-east-1"
-  profile = "default"
-}
 
-# Fetch availability zones
-data "aws_availability_zones" "available" {}
-
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "4.0.0"
-
-  name = "teamhealth-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = slice(data.aws_availability_zones.available.names, 0, 2)
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.11.0/24", "10.0.12.0/24"]
-}
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "20.0.0"
-  cluster_name    = "teamhealth"
-  cluster_version = "1.27"
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
 
-  vpc_id     = module.vpc.vpc_id
-  subnets    = module.vpc.private_subnets
+  cluster_name    = var.cluster_name
+  cluster_version = "1.29"
+  subnet_ids      = var.subnet_ids
+  vpc_id          = var.vpc_id
 
-  node_groups = {
+  eks_managed_node_groups = {
     default = {
-      desired_capacity = 2
-      min_capacity     = 1
-      max_capacity     = 3
-      instance_types   = ["t3.medium"]
+      instance_types = ["t3.medium"]
+      desired_size   = 2
+      min_size       = 1
+      max_size       = 3
     }
+  }
+
+  tags = {
+    Name = "team-health-eks"
+  }
+}
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name = "NAT EIP"
+  }
+}
+
+resource "aws_nat_gateway" "this" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = var.public_subnet_id
+
+  tags = {
+    Name = "Main NAT Gateway"
   }
 }
 
 
-output "kubeconfig" {
-  value     = module.eks.kubeconfig
-  sensitive = true
+resource "aws_subnet" "private_subnet_1" {
+  vpc_id                  = var.vpc_id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "Private Subnet 1"
+  }
 }
+
+resource "aws_subnet" "private_subnet_2" {
+  vpc_id                  = var.vpc_id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "Private Subnet 2"
+  }
+}
+
+resource "aws_subnet" "private_subnet_3" {
+  vpc_id                  = var.vpc_id
+  cidr_block              = "10.0.3.0/24"
+  availability_zone       = "us-east-1c"
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "Private Subnet 3"
+  }
+}
+
+#### my  ks8 deployemnt rn

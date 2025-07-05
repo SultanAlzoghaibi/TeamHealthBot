@@ -18,6 +18,7 @@ import com.teamheath.bot.tools.RedisServices.RedisCheckinCache;
 import com.teamheath.bot.tools.RedisServices.RedisSlackNameCache;
 import com.teamheath.bot.tools.RedisServices.RedisTeamScoreCache;
 import com.teamheath.bot.tools.RedisServices.RedisUserRoleCache;
+import com.teamheath.bot.tools.SlackMessenger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +54,8 @@ public class SlackController {
     @Autowired private RedisCheckinCache redisCheckinCache;
     @Autowired private RedisSlackNameCache redisSlackNameCache;
 
+    @Autowired
+    private SlackMessenger slackMessenger;
 
 
     @FunctionalInterface
@@ -88,7 +91,8 @@ public class SlackController {
                         scoreText,
                         responseURL,
                         redisCacheService,
-                        grpcStub).run()
+                        grpcStub,
+                        slackMessenger).run()
         );
 
         commandMap.put("/myscores", (userId, channelId, scoreText, responseURL) ->

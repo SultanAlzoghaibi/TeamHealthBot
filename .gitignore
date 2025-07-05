@@ -36,3 +36,8 @@ build/
 # Terraform state & plugins
 .terraform/
 *.tfstate
+*.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+
+src/main/resources/application.properties

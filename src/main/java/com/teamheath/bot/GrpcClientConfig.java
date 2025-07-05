@@ -11,8 +11,8 @@ public class GrpcClientConfig {
 
     @Bean
     public ManagedChannel grpcChannel() {
-        return ManagedChannelBuilder // again here is where you need the localhost
-                .forAddress("cpp-microservice", 50051)
+        return ManagedChannelBuilder // again here is where you need the ≈
+                .forAddress("localhost", 50051)
                 .usePlaintext()
                 .build();
     }

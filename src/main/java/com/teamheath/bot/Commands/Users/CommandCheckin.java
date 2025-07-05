@@ -9,6 +9,7 @@ import com.teamheath.bot.RedisCacheService;
 import com.teamhealth.grpc.ScoreProto.CalculateScoreRequest;
 import com.teamhealth.grpc.ScoreProto.CalculateScoreResponse;
 import com.teamhealth.grpc.ScoreProto;
+import com.teamheath.bot.tools.SlackMessenger;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,21 +30,25 @@ public class CommandCheckin implements Command {
 
     private final ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub;
 
-
+    private SlackMessenger slackMessenger;
     private static int fill = 0;
+
 
     public CommandCheckin(String userId,
                           String channelId,
                           String score,
                           String responseUrl,
                           RedisCacheService redisCacheService,
-                          ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub) {
+                          ScoreServiceGrpc.ScoreServiceBlockingStub grpcStub,
+                          SlackMessenger slackMessenger
+        ) {
         this.userId = userId;
         this.channelId = channelId;
         this.score = score;
         this.responseUrl = responseUrl;
         this.redisCacheService = redisCacheService;
         this.grpcStub = grpcStub;
+        this.slackMessenger = slackMessenger;
     }
 
     @Override
@@ -51,54 +56,38 @@ public class CommandCheckin implements Command {
         System.out.println("run checkin");
         // Look up teamId by userId (e.g., from DB or service)
         // 1. Get teamId (you'll replace this with a real DB/service lookup)
+        slackMessenger.sendMessage(userId,"TIME to review your team health");
+
         String teamId = getTeamIdFromUser(userId);
         String orgId = getOrgIdFromTeamId(teamId); // Add this if nesting by org
 
         // Check if user already submitted
-        long startTime = System.nanoTime();
+
         boolean hasCheckedIn = redisCacheService.hasCheckedIn(orgId, teamId, userId);
-        long endTime = System.nanoTime();
-        double elapsedMs = (endTime - startTime) ;
-        System.out.println("Redis check took: " + elapsedMs + "nano");
 
-        int numericScore = -1;
-
-        if (hasCheckedIn) {
-            System.out.println("User <@" + userId + "> already checked in. INGORIRNG duplicate.");
-            return;
-        }
+        int numericScore;
         try {
             numericScore = Integer.parseInt(score);
-            // Optional: Add validation range check (e.g., 1–10)
-            if (numericScore <= 1 || numericScore >= 100) {
+            if (numericScore < 1 || numericScore > 100) {
                 System.out.println("❌ Invalid score range. Must be between 1 and 10.");
                 return;
             }
-            redisCacheService.cacheScore(orgId, teamId, userId, numericScore);
-
         } catch (NumberFormatException e) {
-            System.out.println("❌ Invalid score format. Must be a number.");
+            System.out.println("❌ Invalid score format. Must be numeric.");
+            return;
         }
 
-        System.out.println("✅ Checkin from <@" + userId + "> with score " + score + " in " + channelId);
-        fill++;
-        System.out.println("fill " + fill);
-
-
-        Long checkinCount = redisCacheService.incrementCheckinCount(orgId, teamId);
-        System.out.println("checkinCount: " + checkinCount);
-
-// Only trigger gRPC after 5 *unique* check-ins
         redisCacheService.cacheScore(orgId, teamId, userId, numericScore);
         redisCacheService.addUserToTeamSet(orgId, teamId, userId);
         long uniqueCheckins = redisCacheService.getTeamSetSize(orgId, teamId);
-        System.out.println("Unique check-ins so far: " + uniqueCheckins);
+        System.out.println("✅ Check-in received from <@" + userId + "> with score " + numericScore);
+        System.out.println("🔢 Unique check-ins so far: " + uniqueCheckins);
 
-// Trigger gRPC only when 5 unique users checked in
         if (uniqueCheckins >= 5) {
+            System.out.println("🚀 Triggering gRPC score calculation...");
             sendScoresViaGRPC(orgId, teamId);
-            redisCacheService.clearTeamSet(orgId, teamId);         // ✅ already done
-            redisCacheService.clearTeamScores(orgId, teamId);       // ✅ ADD THIS
+            redisCacheService.clearTeamSet(orgId, teamId);
+            redisCacheService.clearTeamScores(orgId, teamId);
         }
 
 
