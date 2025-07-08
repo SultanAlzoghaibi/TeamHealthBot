@@ -9,3 +9,7 @@ output "cluster_endpoint" {
 # output "kubeconfig" {
 #   value = module.eks.kubeconfig
 # }
+
+output "rds_endpoint" {
+  value = aws_db_instance.postgres.endpoint
+}

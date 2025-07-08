@@ -39,5 +39,6 @@ build/
 *.tfvars
 terraform.tfstate
 terraform.tfstate.backup
+infra/eks/secret.tf
 
 src/main/resources/application.properties

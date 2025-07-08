@@ -1,52 +1,52 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:16
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_MAX_CONNECTIONS
-              value: "400"
-            - name: POSTGRES_DB
-              value: teamhealthdb
-            - name: POSTGRES_USER
-              value: sultan
-            - name: POSTGRES_PASSWORD
-              value: yourpassword
-          resources:
-            requests:
-              cpu: "2000m"      # 2 cores
-              memory: "4Gi"
-            limits:
-              cpu: "4000m"      # 4 cores
-              memory: "8Gi"    # up to 4 GB RAM
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgres-storage
-      volumes:
-        - name: postgres-storage
-          emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-spec:
-  type: ClusterIP
-  selector:
-    app: postgres
-  ports:
-    - port: 5432
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: postgres
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: postgres
+#  template:
+#    metadata:
+#      labels:
+#        app: postgres
+#    spec:
+#      containers:
+#        - name: postgres
+#          image: postgres:16
+#          ports:
+#            - containerPort: 5432
+#          env:
+#            - name: POSTGRES_MAX_CONNECTIONS
+#              value: "600"
+#            - name: POSTGRES_DB
+#              value: teamhealthdb
+#            - name: POSTGRES_USER
+#              value: sultan
+#            - name: POSTGRES_PASSWORD
+#              value: yourpassword
+#          resources:
+#            requests:
+#              cpu: "2000m"      # 2 cores
+#              memory: "4Gi"
+#            limits:
+#              cpu: "4000m"      # 4 cores
+#              memory: "8Gi"    # up to 4 GB RAM
+#          volumeMounts:
+#            - mountPath: /var/lib/postgresql/data
+#              name: postgres-storage
+#      volumes:
+#        - name: postgres-storage
+#          emptyDir: {}
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: postgres
+#spec:
+#  type: ClusterIP
+#  selector:
+#    app: postgres
+#  ports:
+#    - port: 5432
